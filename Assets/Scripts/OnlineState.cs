@@ -2,11 +2,6 @@ using Unity.Netcode;
 
 using UnityEngine;
 
-public class GlobalSceneObject : MonoBehaviour
-{
-    private void Start() => DontDestroyOnLoad(gameObject);
-}
-
 public static class OnlineState
 {
     // How data is transferred between clients //
@@ -34,6 +29,7 @@ public static class OnlineState
         GameObject transferPrefab = Resources.Load<GameObject>("TP/Localhost");
         GameObject transferInstance = GameObject.Instantiate(transferPrefab);
         transferInstance.AddComponent<GlobalSceneObject>();
+        transferInstance.name = "Localhost-ClientTransferProtocol";
 
         // Local host does not require any authentication so clients and hosts can be created freely //
         if (sIsHost)
