@@ -33,10 +33,21 @@ public static class OnlineState
 
         // Local host does not require any authentication so clients and hosts can be created freely //
         if (sIsHost)
-            { NetworkManager.Singleton.StartHost(); }
+        {
+            // Starts the server //
+            NetworkManager.Singleton.StartHost();
 
-        else
-            { NetworkManager.Singleton.StartClient(); }
+            // Creates the client controller //
+            GameObject clientControllerPrefab = Resources.Load<GameObject>("ClientController");
+            GameObject clientControllerInstance = GameObject.Instantiate(clientControllerPrefab);
+            clientControllerInstance.GetComponent<NetworkObject>().Spawn();
+
+            // Creates the client for the host //
+            clientControllerInstance.GetComponent<ClientController>().CreateClient(0);
+        }
+
+        // Spawning clients does not require any additional logic //
+        else { NetworkManager.Singleton.StartClient(); }
     }
 
     // Creates a relay transfer protocol via Unity //

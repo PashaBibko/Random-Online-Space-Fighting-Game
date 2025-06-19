@@ -20,6 +20,9 @@ public class Client : NetworkBehaviour
             // Initalises it with the network correctly //
             controllerInstance.GetComponent<NetworkObject>().Spawn();
             DontDestroyOnLoad(controllerInstance);
+
+            // Runs the init() function of the ServerController to finish initalistion //
+            controllerInstance.GetComponent<ServerController>().Init();
         }
     }
 }
