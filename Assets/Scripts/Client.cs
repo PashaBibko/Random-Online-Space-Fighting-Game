@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using UnityEditor.Search;
 
 public class Client : NetworkBehaviour
 {
@@ -50,8 +51,23 @@ public class Client : NetworkBehaviour
         return true;
     }
 
-    [ServerRpc(RequireOwnership = false)] private void SpawnNetworkGameObject_ServerRPC(string prefab, ulong owner)
+    [ServerRpc(RequireOwnership = false)] private void SpawnNetworkGameObject_ServerRPC(string name, ulong owner)
     {
-        Debug.Log($"Client-{owner} requested {prefab} to be spawned");
+        // Loads the prefab and makes sure it is valid //
+        GameObject prefab = Resources.Load<GameObject>(name);
+        if (prefab == null)
+        {
+            Debug.LogError($"Invalid prefab [{name}] passed to Client.SpawnNetworkGameObject - prefab does not exist");
+        }
+
+        // Creates the prefab and locates the NetworkObject //
+        GameObject instance = GameObject.Instantiate(prefab);
+        if (!instance.TryGetComponent<NetworkObject>(out var net))
+        {
+            Debug.LogError($"Invalid prefab [{name}] passed to Client.SpawnNetworkGameObject - prefab does not have a [Network Object] component");
+        }
+
+        // Initalises the network object as owned by the client that called for it's creation //
+        net.SpawnAsPlayerObject(owner, true);
     }
 }
