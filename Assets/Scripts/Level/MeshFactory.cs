@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public static class MeshFactory
@@ -20,66 +19,106 @@ public static class MeshFactory
         }
     }
 
+    private static Color GenColor(float a, float b, float c)
+    {
+        float avg = (a + b + c) / 3f;
+        avg = (Mathf.Abs(avg) - 10f) / 20f;
+
+        Color d = new(67 / 255f, 137 / 255f, 50 / 255f);
+        Color l = new(86 / 255f, 253 / 255f, 44 / 255f);
+
+        return Color.Lerp(l, d, avg);
+    }
+
     private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings)
     {
-        // Calculates the total size of the mesh and allocates space for the verticies and triangles //
-        int totalVertexCount = (int)Mathf.Pow(settings._VertexCountPerSide + 1, 2);
-        int totalTriangleCount = (int)Mathf.Pow(settings._VertexCountPerSide, 2);
+        // Allocates all of the memory for the mesh items //
+        int length = (int)Mathf.Pow(settings._VertexCountPerSide, 2) * 6;
 
-        Vector3[] verticies = new Vector3[totalVertexCount];
-        int[] triangles = new int[totalTriangleCount * 6];
+        Vector3[] verticies = new Vector3[length];
+        Color[] colors = new Color[length];
+        int[] triangles = new int[length];
 
-        // Generates the position of the first vertex in the mesh //
-        Vector3 startPosition = new
+        // Calculates the start position of the mesh with the offsets //
+        Vector3 start = new
         (
-            (settings._VertexCountPerSide / 2f) * (-settings._DistBetweenVertecies),
+            -settings._DistBetweenVertecies * (settings._VertexCountPerSide / 2f),
             0,
-            (settings._VertexCountPerSide / 2f) * (-settings._DistBetweenVertecies)
+            -settings._DistBetweenVertecies * (settings._VertexCountPerSide / 2f)
         );
 
         Vector3 xOffset = new(settings._DistBetweenVertecies, 0, 0);
         Vector3 zOffset = new(0, 0, settings._DistBetweenVertecies);
 
-        // Indecies of the different information generation //
-        int vIndex = 0;
-        int tIndex = 0;
+        int index = 0;
 
-        // Calculates the information of the mesh //
-        for (int z = 0; z <= settings._VertexCountPerSide; z++)
+        float min = Mathf.Infinity;
+        float max = Mathf.NegativeInfinity;
+
+        // Calculates the information for each triangle in the mesh //
+        for (int z = 0; z < settings._VertexCountPerSide; z++)
         {
-            for (int x = 0; x <= settings._VertexCountPerSide; x++)
+            for (int x = 0; x < settings._VertexCountPerSide; x++)
             {
-                // Sets the position of the vertex //
-                verticies[vIndex] = startPosition + (xOffset * x) + (zOffset * z);
-                verticies[vIndex].y = Mathf.PerlinNoise(x / 37f, z / 37f) * 20;
-                vIndex++;
+                // The 4 vertex locations (x and z) //
+                Vector3 bl = start + (x * xOffset) + (z * zOffset);
+                Vector3 br = bl + xOffset;
+                Vector3 tl = bl + zOffset;
+                Vector3 tr = br + zOffset;
 
-                // Calculates the verticies of the triangles //
-                if (x < settings._VertexCountPerSide && z < settings._VertexCountPerSide)
-                {
-                    // Offset of the first vertex //
-                    int offset = (int)(z * (settings._VertexCountPerSide + 1) + x);
+                // Calculates their respective heights //
+                bl.y = Mathf.PerlinNoise(bl.x / 37f, bl.z / 37f) * 20f - 30f;
+                br.y = Mathf.PerlinNoise(br.x / 37f, br.z / 37f) * 20f - 30f;
+                tl.y = Mathf.PerlinNoise(tl.x / 37f, tl.z / 37f) * 20f - 30f;
+                tr.y = Mathf.PerlinNoise(tr.x / 37f, tr.z / 37f) * 20f - 30f;
 
-                    // First triangle of the quad //
-                    triangles[tIndex + 0] = offset + 0;
-                    triangles[tIndex + 1] = offset + 1 + settings._VertexCountPerSide;
-                    triangles[tIndex + 2] = offset + 1;
+                min = Mathf.Min(min, bl.y);
+                max = Mathf.Max(max, bl.y);
 
-                    // Second triangle of the quad //
-                    triangles[tIndex + 3] = offset + 1;
-                    triangles[tIndex + 4] = offset + 1 + settings._VertexCountPerSide;
-                    triangles[tIndex + 5] = offset + 2 + settings._VertexCountPerSide;
+                // Triangle 1 vertex positions //
+                verticies[index + 0] = bl;
+                verticies[index + 1] = tl;
+                verticies[index + 2] = tr;
 
-                    tIndex = tIndex + 6;
-                }
+                // Triangle 1 color //
+                Color c1 = GenColor(bl.y, tl.y, tr.y);
+                colors[index + 0] = c1;
+                colors[index + 1] = c1;
+                colors[index + 2] = c1;
+
+                // Triangle 1 indecies //
+                triangles[index + 0] = index + 0;
+                triangles[index + 1] = index + 1;
+                triangles[index + 2] = index + 2;
+
+                // Triangle 2 vertex positions //
+                verticies[index + 3] = bl;
+                verticies[index + 4] = tr;
+                verticies[index + 5] = br;
+
+                // Triangle 2 color //
+                Color c2 = GenColor(bl.y, tr.y, br.y);
+                colors[index + 3] = c2;
+                colors[index + 4] = c2;
+                colors[index + 5] = c2;
+
+                // Triangle 2 indecies //
+                triangles[index + 3] = index + 3;
+                triangles[index + 4] = index + 4;
+                triangles[index + 5] = index + 5;
+
+                index += 6;
             }
         }
+
+        Debug.Log($"Min: [{min}], Max: [{max}]");
 
         // Creates the mesh and assigns all the generated information before returning //
         Mesh mesh = new()
         {
             vertices = verticies,
-            triangles = triangles
+            triangles = triangles,
+            colors = colors
         };
 
         mesh.RecalculateNormals();
@@ -91,7 +130,7 @@ public static class MeshFactory
     public static Mesh Create(MeshGenerationSettings settings)
     {
         // Verifies the settings //
-        if (settings._VertexCountPerSide > 250)
+        if (settings._VertexCountPerSide > 100)
         {
             Debug.LogError($"MeshGenerationSettings.VertexCountPerSide cannot be higher than 250. Value given {settings._VertexCountPerSide}");
             return null;

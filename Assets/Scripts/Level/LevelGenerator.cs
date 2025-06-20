@@ -11,8 +11,8 @@ public class LevelGenerator : MonoBehaviour
     {
         MeshFactory.MeshGenerationSettings settings = new
         (
-            VertexCountPerSide:     250,
-            DistBetweenVerticies:   1
+            VertexCountPerSide:     100,
+            DistBetweenVerticies:   2
         );
 
         m_GeneratedMesh = MeshFactory.Create(settings);
