@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class Player : ClientControlled
@@ -35,7 +34,6 @@ public class Player : ClientControlled
         // Shoots a ray downwards to find what the player is standing on //
         Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit);
         bool grounded = hit.distance < 1.05f;
-        Debug.Log(hit.distance);
 
         // Calculates the move direction //
         m_MoveDir = (m_Orientation.forward * m_Input.y) + (m_Orientation.right * m_Input.x);

@@ -2,11 +2,6 @@ using UnityEngine;
 
 public class LevelGenerator : MonoBehaviour
 {
-    [SerializeField] MeshFilter m_MeshFilter;
-    [SerializeField] MeshCollider m_Collider;
-
-    private Mesh m_GeneratedMesh;
-
     void Start()
     {
         MeshFactory.MeshGenerationSettings settings = new
@@ -15,9 +10,23 @@ public class LevelGenerator : MonoBehaviour
             DistBetweenVerticies:   2
         );
 
-        m_GeneratedMesh = MeshFactory.Create(settings);
+        GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
 
-        m_MeshFilter.sharedMesh = m_GeneratedMesh;
-        m_Collider.sharedMesh = m_GeneratedMesh;
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int z = -1; z <= 1; z++)
+            {
+                Vector3 position = new
+                (
+                    x * settings._VertexCountPerSide * settings._DistBetweenVertecies, 0,
+                    z * settings._VertexCountPerSide * settings._DistBetweenVertecies
+                );
+
+                GameObject instance = GameObject.Instantiate(sectionPrefab, position, Quaternion.identity);
+
+                LevelGroundSection sect = instance.GetComponent<LevelGroundSection>();
+                sect.SetMesh(MeshFactory.Create(settings, new Vector2(position.x, position.z)));
+            }
+        }
     }
 }

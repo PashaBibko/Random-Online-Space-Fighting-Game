@@ -22,15 +22,39 @@ public static class MeshFactory
     private static Color GenColor(float a, float b, float c)
     {
         float avg = (a + b + c) / 3f;
-        avg = (Mathf.Abs(avg) - 10f) / 20f;
+        avg = 1 - (avg + 20) / 40;
 
-        Color d = new(67 / 255f, 137 / 255f, 50 / 255f);
-        Color l = new(86 / 255f, 253 / 255f, 44 / 255f);
+        Color d = new(6 / 255f, 75 / 255f, 0 / 255f);
+        Color l = new(96 / 255f, 255 / 255f, 82 / 255f);
 
         return Color.Lerp(l, d, avg);
     }
 
-    private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings)
+    private static float SamplePerlin(Vector3 pos, Vector2 offset, float scale)
+    {
+        pos.x += offset.x;
+        pos.z += offset.y;
+
+        float total = 0f;
+        float freq = 1f;
+        float amp = 1f;
+        float max = 0f;
+
+        for (int i = 0; i < 3; i++)
+        {
+            float perlin = Mathf.PerlinNoise(pos.x / scale * freq, pos.z / scale * freq);
+            total += perlin * amp;
+
+            max += amp;
+
+            freq *= 2f;
+            amp *= 0.5f;
+        }
+
+        return total / max;
+    }
+
+    private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings, Vector2 offset)
     {
         // Allocates all of the memory for the mesh items //
         int length = (int)Mathf.Pow(settings._VertexCountPerSide, 2) * 6;
@@ -67,10 +91,10 @@ public static class MeshFactory
                 Vector3 tr = br + zOffset;
 
                 // Calculates their respective heights //
-                bl.y = Mathf.PerlinNoise(bl.x / 37f, bl.z / 37f) * 20f - 30f;
-                br.y = Mathf.PerlinNoise(br.x / 37f, br.z / 37f) * 20f - 30f;
-                tl.y = Mathf.PerlinNoise(tl.x / 37f, tl.z / 37f) * 20f - 30f;
-                tr.y = Mathf.PerlinNoise(tr.x / 37f, tr.z / 37f) * 20f - 30f;
+                bl.y = SamplePerlin(bl, offset, 113) * 60f - 30f;
+                br.y = SamplePerlin(br, offset, 113) * 60f - 30f;
+                tl.y = SamplePerlin(tl, offset, 113) * 60f - 30f;
+                tr.y = SamplePerlin(tr, offset, 113) * 60f - 30f;
 
                 min = Mathf.Min(min, bl.y);
                 max = Mathf.Max(max, bl.y);
@@ -127,7 +151,7 @@ public static class MeshFactory
         return mesh;
     }
 
-    public static Mesh Create(MeshGenerationSettings settings)
+    public static Mesh Create(MeshGenerationSettings settings, Vector2 offset)
     {
         // Verifies the settings //
         if (settings._VertexCountPerSide > 100)
@@ -137,7 +161,7 @@ public static class MeshFactory
         }
 
         // Creates the mesh //
-        Mesh output = GenerateSimpleMesh(settings);
+        Mesh output = GenerateSimpleMesh(settings, offset);
 
         return output;
     }
