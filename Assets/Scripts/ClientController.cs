@@ -15,8 +15,6 @@ public class ClientController : NetworkBehaviour
 
     public void CreateClient(ulong ID)
     {
-        Debug.Log("Creating client: " + ID);
-
         // Creates the prefab //
         GameObject clientPrefab = Resources.Load<GameObject>("Client");
         GameObject clientInstance = GameObject.Instantiate(clientPrefab);

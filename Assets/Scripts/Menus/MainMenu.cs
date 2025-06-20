@@ -8,17 +8,24 @@ public class MainMenu : MonoBehaviour
     [Header("Canvas and elements")]
     [SerializeField] private Canvas m_Canvas;
     [SerializeField] private Text m_PlayercountText;
+    [SerializeField] private Button m_StartButton;
 
     #if UNITY_EDITOR
         [Header("Dev settings")]
         [SerializeField] private OnlineState.TransferProtocol d_Protocol;
-#endif
+    #endif
 
     // Trackers of the state of the menu //
 
     private bool mConnectedToServer = false;
 
     // ===== General functions ===== //
+
+    private void Start()
+    {
+        // Disabled by default //
+        m_StartButton.gameObject.SetActive(false);
+    }
 
     private void Update()
     {
@@ -35,6 +42,9 @@ public class MainMenu : MonoBehaviour
     {
         // Singleplayer uses localhost so logic does not require a non-network solution //
         OnlineState.Init(OnlineState.TransferProtocol.LOCALHOST, isHost: true);
+
+        // Simulates the start button being clicked //
+        OnButtonClicked_Start();
     }
 
     public void OnButtonClicked_Host()
@@ -48,6 +58,8 @@ public class MainMenu : MonoBehaviour
 
         // The user is now connected to a server //
         mConnectedToServer = true;
+
+        m_StartButton.gameObject.SetActive(true);
     }
 
     public void OnButtonClicked_Join()
@@ -61,5 +73,12 @@ public class MainMenu : MonoBehaviour
 
         // The user is now connected to a server //
         mConnectedToServer = true;
+
+        m_StartButton.gameObject.SetActive(true);
+    }
+
+    public void OnButtonClicked_Start()
+    {
+        NetworkManager.Singleton.SceneManager.LoadScene("TestScene", LoadSceneMode.Single);
     }
 }
