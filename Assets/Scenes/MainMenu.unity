@@ -991,8 +991,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Canvas: {fileID: 479397621}
   m_PlayercountText: {fileID: 299649270}
-  m_JoincodeText: {fileID: 0}
-  m_JoincodeInput: {fileID: 0}
+  m_JoincodeText: {fileID: 1370390762}
+  m_JoincodeInput: {fileID: 274427947}
   m_StartButton: {fileID: 421351108}
   d_Protocol: 1
 --- !u!4 &882779407

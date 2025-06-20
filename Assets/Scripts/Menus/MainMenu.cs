@@ -34,6 +34,7 @@ public class MainMenu : MonoBehaviour
 
         // Updates the player count text //
         m_PlayercountText.text = "Playercount: " + ServerController.Playercount();
+        m_JoincodeText.text = "Code: " + OnlineState.Joincode();
     }
 
     // ===== Button click events ===== //
@@ -58,8 +59,6 @@ public class MainMenu : MonoBehaviour
 
         // The user is now connected to a server //
         mConnectedToServer = true;
-
-        m_JoincodeInput.text = "Code: " + OnlineState.Joincode();
         m_StartButton.gameObject.SetActive(true);
     }
 
@@ -74,8 +73,6 @@ public class MainMenu : MonoBehaviour
 
         // The user is now connected to a server //
         mConnectedToServer = true;
-
-        m_JoincodeInput.text = "Code: " + OnlineState.Joincode();
         m_StartButton.gameObject.SetActive(true);
     }
 
