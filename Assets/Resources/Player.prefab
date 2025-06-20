@@ -206,6 +206,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Body: {fileID: 4439162640434017215}
   m_Orientation: {fileID: 5882051396762566724}
+  m_Mass: 5
 --- !u!1 &8456145637147828786
 GameObject:
   m_ObjectHideFlags: 0

@@ -32,10 +32,43 @@ public class Player : ClientControlled
 
     public override void OnFixedUpdate()
     {
+        // Shoots a ray downwards to find what the player is standing on //
+        Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit);
+        bool grounded = hit.distance < 1.05f;
+        Debug.Log(hit.distance);
+
         // Calculates the move direction //
         m_MoveDir = (m_Orientation.forward * m_Input.y) + (m_Orientation.right * m_Input.x);
 
-        // Adds the force to the rigidbody //
+        // Extra logic if the player is on the ground //
+        if (grounded)
+        {
+            // Projects the move direction onto the ground to allow the player to better move on slopes //
+            m_MoveDir = Vector3.ProjectOnPlane(m_MoveDir, hit.normal).normalized;
+
+            // Checks if the player wants to jump //
+            if (Input.GetKey(KeyCode.Space))
+            {
+                m_Body.AddForce(Vector3.up * 10, ForceMode.Impulse);
+            }
+
+            // Disables gravity to stop sliding on slopes //
+            m_Body.useGravity = false;
+
+            // Applies a "stick-to-floor" force //
+            m_Body.AddForce(-hit.normal * 30f, ForceMode.Force);
+        }
+
+        else
+        {
+            // When falling down applies an extra downwards force to feel more responsive //
+            if (m_Body.velocity.y < 0) { m_Body.AddForce(Vector3.down * 20, ForceMode.Force); }
+
+            // Enables gravity as it is disabled to stop sliding on slopes //
+            m_Body.useGravity = true;
+        }
+
+        // Adds the base movement force to the rigidbody //
         m_Body.AddForce(m_MoveDir.normalized * 50, ForceMode.Force);
     }
 }

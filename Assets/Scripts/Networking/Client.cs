@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using UnityEditor.Search;
 
 public class Client : NetworkBehaviour
 {
