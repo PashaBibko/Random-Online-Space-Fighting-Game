@@ -6,6 +6,8 @@ public class MainMenu : MonoBehaviour
     [Header("Canvas and elements")]
     [SerializeField] private Canvas m_Canvas;
     [SerializeField] private Text m_PlayercountText;
+    [SerializeField] private Text m_JoincodeText;
+    [SerializeField] private InputField m_JoincodeInput;
     [SerializeField] private Button m_StartButton;
 
     #if UNITY_EDITOR
@@ -57,6 +59,7 @@ public class MainMenu : MonoBehaviour
         // The user is now connected to a server //
         mConnectedToServer = true;
 
+        m_JoincodeInput.text = "Code: " + OnlineState.Joincode();
         m_StartButton.gameObject.SetActive(true);
     }
 
@@ -64,14 +67,15 @@ public class MainMenu : MonoBehaviour
     {
         // Allows choosing of network protocol in editor else uses relay //
         #if UNITY_EDITOR
-            OnlineState.Init(d_Protocol, isHost: false);
+            OnlineState.Init(d_Protocol, isHost: false, joincode: m_JoincodeInput.text);
         #else
-            OnlineState.Init(OnlineState.TransferProtocol.RELAY, isHost: false);
+            OnlineState.Init(OnlineState.TransferProtocol.RELAY, isHost: false, joincode: m_JoincodeInput.text);
         #endif
 
         // The user is now connected to a server //
         mConnectedToServer = true;
 
+        m_JoincodeInput.text = "Code: " + OnlineState.Joincode();
         m_StartButton.gameObject.SetActive(true);
     }
 

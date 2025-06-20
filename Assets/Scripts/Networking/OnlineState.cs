@@ -16,10 +16,12 @@ public static class OnlineState
 
     // The online state of the client //
     private static TransferProtocol sProtocol;
+    private static string sJoincode;
     private static bool sIsHost;
 
     // Allows external classes to see how they should interact //
     public static TransferProtocol Protocol() => sProtocol;
+    public static string Joincode() => sJoincode;
     public static bool IsHost() => sIsHost;
 
     // Creates a localhost transfer protocol //
@@ -51,14 +53,14 @@ public static class OnlineState
     }
 
     // Creates a relay transfer protocol via Unity //
-    private static void CreateRelayTransferProtocol()
+    private static void CreateRelayTransferProtocol(string joincode)
     {
         // I CBA atm to set this up AGAIN //
         throw new System.NotImplementedException();
     }
 
     // Initalises the state of how the client should interact with the host/server //
-    public static void Init(TransferProtocol protocol, bool isHost)
+    public static void Init(TransferProtocol protocol, bool isHost, string joincode = "")
     {
         // Sets the classes members //
         sProtocol = protocol;
@@ -72,7 +74,7 @@ public static class OnlineState
                 break;
 
             case TransferProtocol.RELAY:
-                CreateRelayTransferProtocol();
+                CreateRelayTransferProtocol(joincode);
                 break;
         }
     }
