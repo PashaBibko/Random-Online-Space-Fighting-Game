@@ -1,14 +1,35 @@
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
     [Header("Canvas and elements")]
     [SerializeField] private Canvas m_Canvas;
+    [SerializeField] private Text m_PlayercountText;
 
     #if UNITY_EDITOR
         [Header("Dev settings")]
         [SerializeField] private OnlineState.TransferProtocol d_Protocol;
-    #endif
+#endif
+
+    // Trackers of the state of the menu //
+
+    private bool mConnectedToServer = false;
+
+    // ===== General functions ===== //
+
+    private void Update()
+    {
+        // Does not attempt to message server if not connected //
+        if (mConnectedToServer == false) { return; }
+
+        // Updates the player count text //
+        m_PlayercountText.text = "Playercount: " + ServerController.Playercount();
+    }
+
+    // ===== Button click events ===== //
 
     public void OnButtonClicked_Solo()
     {
@@ -24,6 +45,9 @@ public class MainMenu : MonoBehaviour
         #else
             OnlineState.Init(OnlineState.TransferProtocol.RELAY, isHost: true);
         #endif
+
+        // The user is now connected to a server //
+        mConnectedToServer = true;
     }
 
     public void OnButtonClicked_Join()
@@ -34,5 +58,8 @@ public class MainMenu : MonoBehaviour
         #else
             OnlineState.Init(OnlineState.TransferProtocol.RELAY, isHost: false);
         #endif
+
+        // The user is now connected to a server //
+        mConnectedToServer = true;
     }
 }

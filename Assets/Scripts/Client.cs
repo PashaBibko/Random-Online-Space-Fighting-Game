@@ -7,6 +7,9 @@ public class Client : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        // Sets it's name to have it's client ID (for easier recognition) //
+        transform.name = "Client-" + OwnerClientId;
+
         // If it is the host it needs to spawn the server controller so everything functions correctly //
         if (IsHost && sSpawnedServerController == false)
         {
