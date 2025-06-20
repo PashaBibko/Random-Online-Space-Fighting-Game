@@ -38,7 +38,7 @@ public static class OnlineState
             NetworkManager.Singleton.StartHost();
 
             // Creates the client controller //
-            GameObject clientControllerPrefab = Resources.Load<GameObject>("ClientController");
+            GameObject clientControllerPrefab = Resources.Load<GameObject>("Network/ClientController");
             GameObject clientControllerInstance = GameObject.Instantiate(clientControllerPrefab);
             clientControllerInstance.GetComponent<NetworkObject>().Spawn();
 

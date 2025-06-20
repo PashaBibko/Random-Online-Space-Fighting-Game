@@ -28,7 +28,7 @@ public class Client : NetworkBehaviour
             sSpawnedServerController = true;
 
             // Spawns the server controller within the world //
-            GameObject controllerPrefab = Resources.Load<GameObject>("ServerController");
+            GameObject controllerPrefab = Resources.Load<GameObject>("Network/ServerController");
             GameObject controllerInstance = GameObject.Instantiate(controllerPrefab);
 
             // Initalises it with the network correctly //
