@@ -79,6 +79,6 @@ public class MainMenu : MonoBehaviour
 
     public void OnButtonClicked_Start()
     {
-        NetworkManager.Singleton.SceneManager.LoadScene("TestScene", LoadSceneMode.Single);
+        SceneController.Load("TestScene");
     }
 }
