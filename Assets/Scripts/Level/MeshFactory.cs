@@ -22,7 +22,6 @@ public static class MeshFactory
     private static Color GenColor(float a, float b, float c)
     {
         float avg = (a + b + c) / 3f;
-        avg = 1 - (avg + 20) / 40;
 
         Color d = new(6 / 255f, 75 / 255f, 0 / 255f);
         Color l = new(96 / 255f, 255 / 255f, 82 / 255f);
@@ -42,7 +41,8 @@ public static class MeshFactory
 
         for (int i = 0; i < 3; i++)
         {
-            float perlin = Mathf.PerlinNoise(pos.x / scale * freq, pos.z / scale * freq);
+            Vector2 p = new(pos.x, pos.z);
+            float perlin = Perlin.Sample(p / scale * freq, 23117);
             total += perlin * amp;
 
             max += amp;
@@ -76,9 +76,6 @@ public static class MeshFactory
 
         int index = 0;
 
-        float min = Mathf.Infinity;
-        float max = Mathf.NegativeInfinity;
-
         // Calculates the information for each triangle in the mesh //
         for (int z = 0; z < settings._VertexCountPerSide; z++)
         {
@@ -91,13 +88,19 @@ public static class MeshFactory
                 Vector3 tr = br + zOffset;
 
                 // Calculates their respective heights //
-                bl.y = SamplePerlin(bl, offset, 113) * 60f - 30f;
-                br.y = SamplePerlin(br, offset, 113) * 60f - 30f;
-                tl.y = SamplePerlin(tl, offset, 113) * 60f - 30f;
-                tr.y = SamplePerlin(tr, offset, 113) * 60f - 30f;
+                bl.y = SamplePerlin(bl, offset, 113);
+                br.y = SamplePerlin(br, offset, 113);
+                tl.y = SamplePerlin(tl, offset, 113);
+                tr.y = SamplePerlin(tr, offset, 113);
 
-                min = Mathf.Min(min, bl.y);
-                max = Mathf.Max(max, bl.y);
+                // Creates the colors before y-modification //
+                Color c1 = GenColor(bl.y, tl.y, tr.y);
+                Color c2 = GenColor(bl.y, tr.y, br.y);
+
+                bl.y *= -50;
+                br.y *= -50;
+                tl.y *= -50;
+                tr.y *= -50;
 
                 // Triangle 1 vertex positions //
                 verticies[index + 0] = bl;
@@ -105,7 +108,6 @@ public static class MeshFactory
                 verticies[index + 2] = tr;
 
                 // Triangle 1 color //
-                Color c1 = GenColor(bl.y, tl.y, tr.y);
                 colors[index + 0] = c1;
                 colors[index + 1] = c1;
                 colors[index + 2] = c1;
@@ -121,7 +123,6 @@ public static class MeshFactory
                 verticies[index + 5] = br;
 
                 // Triangle 2 color //
-                Color c2 = GenColor(bl.y, tr.y, br.y);
                 colors[index + 3] = c2;
                 colors[index + 4] = c2;
                 colors[index + 5] = c2;
@@ -134,8 +135,6 @@ public static class MeshFactory
                 index += 6;
             }
         }
-
-        Debug.Log($"Min: [{min}], Max: [{max}]");
 
         // Creates the mesh and assigns all the generated information before returning //
         Mesh mesh = new()
