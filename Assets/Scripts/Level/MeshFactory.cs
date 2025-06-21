@@ -29,7 +29,7 @@ public static class MeshFactory
         return Color.Lerp(l, d, avg);
     }
 
-    private static float SamplePerlin(Vector3 pos, Vector2 offset, float scale)
+    private static float SampleNoise(Vector3 pos, Vector2 offset, float scale)
     {
         pos.x += offset.x;
         pos.z += offset.y;
@@ -88,10 +88,10 @@ public static class MeshFactory
                 Vector3 tr = br + zOffset;
 
                 // Calculates their respective heights //
-                bl.y = SamplePerlin(bl, offset, 113);
-                br.y = SamplePerlin(br, offset, 113);
-                tl.y = SamplePerlin(tl, offset, 113);
-                tr.y = SamplePerlin(tr, offset, 113);
+                bl.y = SampleNoise(bl, offset, 113);
+                br.y = SampleNoise(br, offset, 113);
+                tl.y = SampleNoise(tl, offset, 113);
+                tr.y = SampleNoise(tr, offset, 113);
 
                 // Creates the colors before y-modification //
                 Color c1 = GenColor(bl.y, tl.y, tr.y);
