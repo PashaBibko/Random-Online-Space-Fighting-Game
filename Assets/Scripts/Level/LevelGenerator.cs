@@ -1,20 +1,33 @@
+using System.Collections;
 using UnityEngine;
 
 public class LevelGenerator : MonoBehaviour
 {
+    private ValleyNode m_ValleyStart;
+
     void Start()
     {
+        StartCoroutine(SpawnLevel());
+    }
+
+    private IEnumerator SpawnLevel()
+    {
+        // Generates the valley nodes and calculates the bounding box //
+        m_ValleyStart = new ValleyNode();
+        m_ValleyStart.CalculateBoundingBox(out Vector2 min, out Vector2 max);
+        Debug.Log($"{min} | {max}");
+
         MeshFactory.MeshGenerationSettings settings = new
         (
-            VertexCountPerSide:     100,
-            DistBetweenVerticies:   2
+            VertexCountPerSide: 100,
+            DistBetweenVerticies: 2
         );
 
         GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
 
-        for (int x = -1; x <= 1; x++)
+        for (int x = (int)min.x; x <= (int)max.x; x++)
         {
-            for (int z = -1; z <= 1; z++)
+            for (int z = (int)min.y; z <= (int)max.y; z++)
             {
                 Vector3 position = new
                 (
@@ -25,7 +38,9 @@ public class LevelGenerator : MonoBehaviour
                 GameObject instance = GameObject.Instantiate(sectionPrefab, position, Quaternion.identity);
 
                 LevelGroundSection sect = instance.GetComponent<LevelGroundSection>();
-                sect.SetMesh(MeshFactory.Create(settings, new Vector2(position.x, position.z)));
+                sect.SetMesh(MeshFactory.Create(settings, new Vector2(position.x, position.z), m_ValleyStart));
+
+                yield return new WaitForFixedUpdate();
             }
         }
     }

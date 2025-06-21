@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class ValleyNode
@@ -82,6 +83,12 @@ public class ValleyNode
         max = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
 
         CalculateBoundingBox_R(ref min, ref max);
+
+        min.x = (int)min.x - 2;
+        min.y = (int)min.y - 2;
+
+        max.x = (int)max.x + 2;
+        max.y = (int)max.y + 2;
     }
 
     public void Draw()
@@ -98,6 +105,18 @@ public class ValleyNode
             m_ChildB.Draw();
         }
     }
+
+    public void CallFuncOnNodes(Action<ValleyNode> action)
+    {
+        // Calls the function on itself //
+        action(this);
+
+        // Calls the function on it's children (if it has any) //
+        m_ChildA?.CallFuncOnNodes(action);
+        m_ChildB?.CallFuncOnNodes(action);
+    }
+
+    public Vector3 Position() => new Vector3(m_Position.x, 0, m_Position.y);
 
     ValleyNode m_Creator = null;
 
@@ -127,12 +146,6 @@ public class ValleyGen : MonoBehaviour
 
         // Draws the bounding box //
         m_Start.CalculateBoundingBox(out Vector2 min, out Vector2 max);
-
-        min.x = (int)min.x - 2;
-        min.y = (int)min.y - 2;
-
-        max.x = (int)max.x + 2;
-        max.y = (int)max.y + 2;
 
         Vector2 tl = new Vector2(min.x, min.y);
         Vector2 tr = new Vector2(min.x, max.y);

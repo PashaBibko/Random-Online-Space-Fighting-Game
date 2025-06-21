@@ -29,7 +29,28 @@ public static class MeshFactory
         return Color.Lerp(l, d, avg);
     }
 
-    private static float SampleNoise(Vector3 pos, Vector2 offset, float scale)
+    private static float SampleNoise(Vector3 pos, Vector2 offset, float scale, ValleyNode valley)
+    {
+        float minDistance = Mathf.Infinity;
+
+        //Vector3 pos3D = new(pos.x, 0, pos.y);
+        Vector3 offset3D = new(offset.x, 0, offset.y);
+
+        valley.CallFuncOnNodes((ValleyNode node) =>
+        {
+            float distance = Vector3.Distance(node.Position() * 200, pos + offset3D);
+            minDistance = Mathf.Min(minDistance, distance);
+        });
+
+        if (minDistance < 100)
+        {
+            return 1 - (minDistance / 100f);
+        }
+
+        return 0;
+    }
+
+    private static float SampleNoise_o(Vector3 pos, Vector2 offset, float scale, ValleyNode valley)
     {
         pos.x += offset.x;
         pos.z += offset.y;
@@ -54,7 +75,7 @@ public static class MeshFactory
         return total / max;
     }
 
-    private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings, Vector2 offset)
+    private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings, Vector2 offset, ValleyNode valley)
     {
         // Allocates all of the memory for the mesh items //
         int length = (int)Mathf.Pow(settings._VertexCountPerSide, 2) * 6;
@@ -88,10 +109,10 @@ public static class MeshFactory
                 Vector3 tr = br + zOffset;
 
                 // Calculates their respective heights //
-                bl.y = SampleNoise(bl, offset, 113);
-                br.y = SampleNoise(br, offset, 113);
-                tl.y = SampleNoise(tl, offset, 113);
-                tr.y = SampleNoise(tr, offset, 113);
+                bl.y = SampleNoise(bl, offset, 113, valley);
+                br.y = SampleNoise(br, offset, 113, valley);
+                tl.y = SampleNoise(tl, offset, 113, valley);
+                tr.y = SampleNoise(tr, offset, 113, valley);
 
                 // Creates the colors before y-modification //
                 Color c1 = GenColor(bl.y, tl.y, tr.y);
@@ -150,7 +171,7 @@ public static class MeshFactory
         return mesh;
     }
 
-    public static Mesh Create(MeshGenerationSettings settings, Vector2 offset)
+    public static Mesh Create(MeshGenerationSettings settings, Vector2 offset, ValleyNode valley)
     {
         // Verifies the settings //
         if (settings._VertexCountPerSide > 100)
@@ -160,7 +181,7 @@ public static class MeshFactory
         }
 
         // Creates the mesh //
-        Mesh output = GenerateSimpleMesh(settings, offset);
+        Mesh output = GenerateSimpleMesh(settings, offset, valley);
 
         return output;
     }

@@ -9,7 +9,7 @@ public static class SceneController
     {
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            //SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+            SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
         }
     }
 
