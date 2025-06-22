@@ -45,17 +45,7 @@ public static class MeshFactory
             Vector3 start = node.Position() * 200;
             Vector3 end = node.Creator().Position() * 200;
 
-            // Calculates the directions //
-            Vector3 direction = end - start;
-            Vector3 toPoint = pos3D - start;
-
-            float c1 = Vector3.Dot(direction, toPoint);
-            float c2 = Vector3.Dot(direction, direction);
-
-            float t = Mathf.Clamp01(c1 / c2);
-            Vector3 projection = start + t * direction;
-            float distance = Vector3.Distance(pos3D, projection);
-
+            float distance = Geo.DistanceFromLine(pos3D, start, end);
             minDistance = Mathf.Min(minDistance, distance);
         });
 

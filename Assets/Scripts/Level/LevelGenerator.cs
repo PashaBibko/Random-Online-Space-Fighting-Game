@@ -19,8 +19,8 @@ public class LevelGenerator : MonoBehaviour
 
         MeshFactory.MeshGenerationSettings settings = new
         (
-            VertexCountPerSide: 100,
-            DistBetweenVerticies: 2
+            VertexCountPerSide: 20,
+            DistBetweenVerticies: 10
         );
 
         GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
