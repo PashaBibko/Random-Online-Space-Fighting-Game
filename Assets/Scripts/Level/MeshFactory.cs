@@ -33,12 +33,29 @@ public static class MeshFactory
     {
         float minDistance = Mathf.Infinity;
 
-        //Vector3 pos3D = new(pos.x, 0, pos.y);
         Vector3 offset3D = new(offset.x, 0, offset.y);
+        Vector3 pos3D = pos + offset3D;
 
         valley.CallFuncOnNodes((ValleyNode node) =>
         {
-            float distance = Vector3.Distance(node.Position() * 200, pos + offset3D);
+            // Returns early if it is the starting node //
+            if (node == valley) { return; }
+
+            // Gets the start and end positions of the line //
+            Vector3 start = node.Position() * 200;
+            Vector3 end = node.Creator().Position() * 200;
+
+            // Calculates the directions //
+            Vector3 direction = end - start;
+            Vector3 toPoint = pos3D - start;
+
+            float c1 = Vector3.Dot(direction, toPoint);
+            float c2 = Vector3.Dot(direction, direction);
+
+            float t = Mathf.Clamp01(c1 / c2);
+            Vector3 projection = start + t * direction;
+            float distance = Vector3.Distance(pos3D, projection);
+
             minDistance = Mathf.Min(minDistance, distance);
         });
 

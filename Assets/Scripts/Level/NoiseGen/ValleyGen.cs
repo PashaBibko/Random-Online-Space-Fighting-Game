@@ -117,6 +117,7 @@ public class ValleyNode
     }
 
     public Vector3 Position() => new Vector3(m_Position.x, 0, m_Position.y);
+    public ValleyNode Creator() => m_Creator;
 
     ValleyNode m_Creator = null;
 
