@@ -22,11 +22,24 @@ public static class MeshFactory
     private static Color GenColor(float a, float b, float c)
     {
         float avg = (a + b + c) / 3f;
+        float e = 0.35f;
 
-        Color d = new(6 / 255f, 75 / 255f, 0 / 255f);
-        Color l = new(96 / 255f, 255 / 255f, 82 / 255f);
+        if (avg < e)
+        {
+            avg = avg * (1 / e);
 
-        return Color.Lerp(l, d, avg);
+            Color d = new(6 / 255f, 75 / 255f, 0 / 255f);
+            Color l = new(96 / 255f, 255 / 255f, 82 / 255f);
+
+            return Color.Lerp(l, d, avg);
+        }
+
+        if (avg > 0.7f)
+        {
+            return Color.white;
+        }
+
+        return Color.gray;
     }
 
     private static float SampleNoise(Vector3 pos, Vector2 offset, float scale, ValleyNode valley)
@@ -36,6 +49,7 @@ public static class MeshFactory
         Vector3 offset3D = new(offset.x, 0, offset.y);
         Vector3 pos3D = pos + offset3D;
 
+        // Finds the shortest distance to any of the nodes or the lines between them //
         valley.CallFuncOnNodes((ValleyNode node) =>
         {
             // Returns early if it is the starting node //
@@ -49,15 +63,28 @@ public static class MeshFactory
             minDistance = Mathf.Min(minDistance, distance);
         });
 
+        float multi = 0;
+
         if (minDistance < 100)
         {
-            return 1 - (minDistance / 100f);
+            multi = 0.4f;
         }
 
-        return 0;
+        else if (minDistance < 200)
+        {
+            float d = minDistance - 100;
+            multi = 0.4f + d / 100;
+        }
+
+        else
+        {
+            multi = 1.4f;
+        }
+
+        return SamplePerlin(pos, offset, scale) * multi;
     }
 
-    private static float SampleNoise_o(Vector3 pos, Vector2 offset, float scale, ValleyNode valley)
+    private static float SamplePerlin(Vector3 pos, Vector2 offset, float scale)
     {
         pos.x += offset.x;
         pos.z += offset.y;
@@ -116,19 +143,19 @@ public static class MeshFactory
                 Vector3 tr = br + zOffset;
 
                 // Calculates their respective heights //
-                bl.y = SampleNoise(bl, offset, 113, valley);
-                br.y = SampleNoise(br, offset, 113, valley);
-                tl.y = SampleNoise(tl, offset, 113, valley);
-                tr.y = SampleNoise(tr, offset, 113, valley);
+                bl.y = SampleNoise(bl, offset, 587, valley);
+                br.y = SampleNoise(br, offset, 587, valley);
+                tl.y = SampleNoise(tl, offset, 587, valley);
+                tr.y = SampleNoise(tr, offset, 587, valley);
 
                 // Creates the colors before y-modification //
                 Color c1 = GenColor(bl.y, tl.y, tr.y);
                 Color c2 = GenColor(bl.y, tr.y, br.y);
 
-                bl.y *= -50;
-                br.y *= -50;
-                tl.y *= -50;
-                tr.y *= -50;
+                bl.y *= 350;
+                br.y *= 350;
+                tl.y *= 350;
+                tr.y *= 350;
 
                 // Triangle 1 vertex positions //
                 verticies[index + 0] = bl;

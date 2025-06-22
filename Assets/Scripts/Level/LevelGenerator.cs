@@ -15,15 +15,16 @@ public class LevelGenerator : MonoBehaviour
         // Generates the valley nodes and calculates the bounding box //
         m_ValleyStart = new ValleyNode();
         m_ValleyStart.CalculateBoundingBox(out Vector2 min, out Vector2 max);
-        Debug.Log($"{min} | {max}");
 
         MeshFactory.MeshGenerationSettings settings = new
         (
-            VertexCountPerSide: 20,
-            DistBetweenVerticies: 10
+            VertexCountPerSide: 100,
+            DistBetweenVerticies: 2
         );
 
         GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
+
+        float start = Time.unscaledTime;
 
         for (int x = (int)min.x; x <= (int)max.x; x++)
         {
@@ -39,6 +40,8 @@ public class LevelGenerator : MonoBehaviour
 
                 LevelGroundSection sect = instance.GetComponent<LevelGroundSection>();
                 sect.SetMesh(MeshFactory.Create(settings, new Vector2(position.x, position.z), m_ValleyStart));
+
+                Debug.Log($"Time taken: {Time.unscaledTime - start}s");
 
                 yield return new WaitForFixedUpdate();
             }
