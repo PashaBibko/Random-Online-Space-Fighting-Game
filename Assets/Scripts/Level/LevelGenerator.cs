@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Threading.Tasks;
 
 public class LevelGenerator : MonoBehaviour
@@ -6,16 +7,23 @@ public class LevelGenerator : MonoBehaviour
     [Header("References")]
     [SerializeField] Spawner m_PlayerSpawner;
     [SerializeField] Camera m_Camera;
+    [SerializeField] Text m_TimeTakenText;
 
     private ValleyNode m_ValleyStart;
 
     private async void Start()
     {
+        // Captures the start time //
+        float start = Time.time;
+
         // Creates the level in the background //
         await SpawnLevelAsync();
 
         // Removes the gameobject that the camera is attached to //
         Destroy(m_Camera.gameObject);
+
+        // Calculates the time taken and applies it to the text //
+        m_TimeTakenText.text = $"Time taken: {(Time.time - start)}s";
     }
 
     private async Task SpawnLevelAsync()
