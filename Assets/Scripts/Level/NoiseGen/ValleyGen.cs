@@ -4,10 +4,10 @@ using UnityEngine;
 public class ValleyNode
 {
     // Child point constructor //
-    private ValleyNode(ValleyNode creator, float angle, int depth, bool isBranch)
+    private ValleyNode(ValleyNode creator, float angle, int depth, bool isBranch, ref Unity.Mathematics.Random rng)
     {
-        float randAngle = UnityEngine.Random.Range(angle - 30, angle + 30) % 360;
-        float dist = UnityEngine.Random.Range(0.3f, 0.8f);
+        float randAngle = rng.NextFloat(angle - 30, angle + 30) % 360;
+        float dist = rng.NextFloat(0.3f, 0.8f);
 
         float radians = randAngle * Mathf.Deg2Rad;
         float cos = Mathf.Cos(radians);
@@ -23,39 +23,41 @@ public class ValleyNode
             return;
         }
 
-        if (UnityEngine.Random.Range(0, 7) != 1 || depth < 5)
+        if (rng.NextInt(0, 7) != 1 || depth < 5)
         {
             bool branched = isBranch;
 
-            if (UnityEngine.Random.Range(0, 5) == 1 && branched == false)
+            if (rng.NextInt(0, 5) == 1 && branched == false)
             {
                 branched = true;
 
-                if (UnityEngine.Random.Range(0, 2) == 1)
+                if (rng.NextInt(0, 2) == 1)
                 {
-                    m_ChildB = new ValleyNode(this, angle - 45, depth + 1, branched);
+                    m_ChildB = new ValleyNode(this, angle - 45, depth + 1, branched, ref rng);
                 }
 
                 else
                 {
-                    m_ChildB = new ValleyNode(this, angle + 45, depth + 1, branched);
+                    m_ChildB = new ValleyNode(this, angle + 45, depth + 1, branched, ref rng);
                 }
             }
 
-            m_ChildA = new ValleyNode(this, angle, depth + 1, branched);
+            m_ChildA = new ValleyNode(this, angle, depth + 1, branched, ref rng);
         }
     }
 
     // Start point constructor //
     public ValleyNode()
     {
+        Unity.Mathematics.Random rng = new Unity.Mathematics.Random(1);
+
         m_Creator = null;
 
         m_Position = Vector2.zero;
 
         // Creates the two starting children //
-        m_ChildA = new ValleyNode(this, 0, 1, false);
-        m_ChildB = new ValleyNode(this, 180, 1, false);
+        m_ChildA = new ValleyNode(this, 0, 1, false, ref rng);
+        m_ChildB = new ValleyNode(this, 180, 1, false, ref rng);
     }
 
     private void CalculateBoundingBox_R(ref Vector2 min, ref Vector2 max)
