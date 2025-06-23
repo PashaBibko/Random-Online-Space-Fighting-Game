@@ -40,17 +40,17 @@ public class Client : NetworkBehaviour
     }
 
     // Fowards the spawn request to the server as they are the only ones able to spawn //
-    public static bool SpawnNetworkGameObject(string prefab)
+    public static bool SpawnNetworkGameObject(string prefab, Vector3 location)
     {
         // Stops access of the client if it has not been created fully //
         if (s_LocalInstance == null) { return false; }
 
         // Calls the server and returns a sucess //
-        s_LocalInstance.SpawnNetworkGameObject_ServerRPC(prefab, s_LocalInstance.OwnerClientId);
+        s_LocalInstance.SpawnNetworkGameObject_ServerRPC(prefab, s_LocalInstance.OwnerClientId, location);
         return true;
     }
 
-    [ServerRpc(RequireOwnership = false)] private void SpawnNetworkGameObject_ServerRPC(string name, ulong owner)
+    [ServerRpc(RequireOwnership = false)] private void SpawnNetworkGameObject_ServerRPC(string name, ulong owner, Vector3 location)
     {
         // Loads the prefab and makes sure it is valid //
         GameObject prefab = Resources.Load<GameObject>(name);
@@ -60,7 +60,7 @@ public class Client : NetworkBehaviour
         }
 
         // Creates the prefab and locates the NetworkObject //
-        GameObject instance = GameObject.Instantiate(prefab);
+        GameObject instance = GameObject.Instantiate(prefab, location, Quaternion.identity);
         if (!instance.TryGetComponent<NetworkObject>(out var net))
         {
             Debug.LogError($"Invalid prefab [{name}] passed to Client.SpawnNetworkGameObject - prefab does not have a [Network Object] component");

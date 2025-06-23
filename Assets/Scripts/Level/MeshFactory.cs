@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public static class MeshFactory
 {
@@ -16,6 +17,20 @@ public static class MeshFactory
         {
             _VertexCountPerSide = VertexCountPerSide;
             _DistBetweenVertecies = DistBetweenVerticies;
+        }
+    }
+
+    public struct MeshGenData
+    {
+        public Vector3[] verticies;
+        public Color[] colors;
+        public int[] triangles;
+
+        public MeshGenData(Vector3[] verticies, Color[] colors, int[] triangles) : this()
+        {
+            this.verticies = verticies;
+            this.colors = colors;
+            this.triangles = triangles;
         }
     }
 
@@ -109,14 +124,17 @@ public static class MeshFactory
         return total / max;
     }
 
-    private static Mesh GenerateSimpleMesh(MeshGenerationSettings settings, Vector2 offset, ValleyNode valley)
+    public static MeshGenData Create(MeshGenerationSettings settings, Vector2 offset, ValleyNode valley)
     {
         // Allocates all of the memory for the mesh items //
         int length = (int)Mathf.Pow(settings._VertexCountPerSide, 2) * 6;
 
-        Vector3[] verticies = new Vector3[length];
-        Color[] colors = new Color[length];
-        int[] triangles = new int[length];
+        MeshGenData data = new
+        (
+            verticies:  new Vector3[length],
+            colors:     new Color[length],
+            triangles:  new int[length]
+        );
 
         // Calculates the start position of the mesh with the offsets //
         Vector3 start = new
@@ -158,65 +176,39 @@ public static class MeshFactory
                 tr.y *= 350;
 
                 // Triangle 1 vertex positions //
-                verticies[index + 0] = bl;
-                verticies[index + 1] = tl;
-                verticies[index + 2] = tr;
+                data.verticies[index + 0] = bl;
+                data.verticies[index + 1] = tl;
+                data.verticies[index + 2] = tr;
 
                 // Triangle 1 color //
-                colors[index + 0] = c1;
-                colors[index + 1] = c1;
-                colors[index + 2] = c1;
+                data.colors[index + 0] = c1;
+                data.colors[index + 1] = c1;
+                data.colors[index + 2] = c1;
 
                 // Triangle 1 indecies //
-                triangles[index + 0] = index + 0;
-                triangles[index + 1] = index + 1;
-                triangles[index + 2] = index + 2;
+                data.triangles[index + 0] = index + 0;
+                data.triangles[index + 1] = index + 1;
+                data.triangles[index + 2] = index + 2;
 
                 // Triangle 2 vertex positions //
-                verticies[index + 3] = bl;
-                verticies[index + 4] = tr;
-                verticies[index + 5] = br;
+                data.verticies[index + 3] = bl;
+                data.verticies[index + 4] = tr;
+                data.verticies[index + 5] = br;
 
                 // Triangle 2 color //
-                colors[index + 3] = c2;
-                colors[index + 4] = c2;
-                colors[index + 5] = c2;
+                data.colors[index + 3] = c2;
+                data.colors[index + 4] = c2;
+                data.colors[index + 5] = c2;
 
                 // Triangle 2 indecies //
-                triangles[index + 3] = index + 3;
-                triangles[index + 4] = index + 4;
-                triangles[index + 5] = index + 5;
+                data.triangles[index + 3] = index + 3;
+                data.triangles[index + 4] = index + 4;
+                data.triangles[index + 5] = index + 5;
 
                 index += 6;
             }
         }
 
-        // Creates the mesh and assigns all the generated information before returning //
-        Mesh mesh = new()
-        {
-            vertices = verticies,
-            triangles = triangles,
-            colors = colors
-        };
-
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-
-        return mesh;
-    }
-
-    public static Mesh Create(MeshGenerationSettings settings, Vector2 offset, ValleyNode valley)
-    {
-        // Verifies the settings //
-        if (settings._VertexCountPerSide > 100)
-        {
-            Debug.LogError($"MeshGenerationSettings.VertexCountPerSide cannot be higher than 250. Value given {settings._VertexCountPerSide}");
-            return null;
-        }
-
-        // Creates the mesh //
-        Mesh output = GenerateSimpleMesh(settings, offset, valley);
-
-        return output;
+        return data;
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 public class Spawner : MonoBehaviour
@@ -7,12 +6,14 @@ public class Spawner : MonoBehaviour
     [SerializeField] string m_PrefabName;
 
     // Calls the client to create the object //
-    private IEnumerator AttemptSpawn()
+    private IEnumerator AttemptSpawn(Vector3 location)
     {
         // False returns means that the client has not been fully created yet so the function waits until it is ready //
-        while (Client.SpawnNetworkGameObject(m_PrefabName) == false) { yield return new WaitForFixedUpdate(); }
+        while (Client.SpawnNetworkGameObject(m_PrefabName, location) == false) { yield return new WaitForFixedUpdate(); }
     }
 
-    // Spawns the prefab provided //
-    private void Start() => StartCoroutine(AttemptSpawn());
+    // Runs the corountine to spawn the object //
+    public void RequestSpawn() => StartCoroutine(AttemptSpawn(Vector3.zero));
+
+    public void RequestSpawn(Vector3 spawnLocation) => StartCoroutine(AttemptSpawn(spawnLocation));
 }
