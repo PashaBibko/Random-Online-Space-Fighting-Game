@@ -40,9 +40,6 @@ public class LevelGenerator : MonoBehaviour
             DistBetweenVerticies: 2
         );
 
-        // Loads the levelsection prefab outside of the loop so it is only loaded once //
-        GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
-
         // Loops over all the sections and creates them //
         for (int x = (int)min.x; x <= (int)max.x; x++)
         {
@@ -73,6 +70,7 @@ public class LevelGenerator : MonoBehaviour
                 mesh.RecalculateNormals();
 
                 // Creates the section gameobject //
+                GameObject sectionPrefab = Resources.Load<GameObject>("Level/LevelSection");
                 GameObject instance = GameObject.Instantiate(sectionPrefab, position, Quaternion.identity);
                 instance.transform.SetParent(transform, true);
                 LevelGroundSection sect = instance.GetComponent<LevelGroundSection>();
