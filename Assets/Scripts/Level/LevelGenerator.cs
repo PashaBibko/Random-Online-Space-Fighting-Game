@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 
+using System.Diagnostics;
+
 public class LevelGenerator : MonoBehaviour
 {
     [Header("References")]
@@ -14,7 +16,7 @@ public class LevelGenerator : MonoBehaviour
     private async void Start()
     {
         // Captures the start time //
-        float start = Time.time;
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         // Creates the level in the background //
         await SpawnLevelAsync();
@@ -23,7 +25,8 @@ public class LevelGenerator : MonoBehaviour
         Destroy(m_Camera.gameObject);
 
         // Calculates the time taken and applies it to the text //
-        m_TimeTakenText.text = $"Time taken: {(Time.time - start)}s";
+        stopwatch.Stop();
+        m_TimeTakenText.text = $"Time taken: {stopwatch.Elapsed.TotalSeconds}s";
     }
 
     private async Task SpawnLevelAsync()
