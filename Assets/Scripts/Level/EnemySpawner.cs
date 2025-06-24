@@ -16,7 +16,6 @@ public class EnemySpawner : MonoBehaviour
     {
         // Loads the enemy prefab //
         GameObject prefab = Resources.Load<GameObject>("Enemy");
-        Debug.Log("SPAWNING");
 
         // Spawns an enemy at each spawner //
         foreach (EnemySpawner spawner in s_Spawners)

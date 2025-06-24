@@ -28,8 +28,7 @@ public class Player : ClientControlled
         Vector2 rot = m_Camera.Rotation();
         m_Orientation.rotation = Quaternion.Euler(0, rot.y, 0);
     }
-
-    public override void OnFixedUpdate()
+    private void UpdateMovement()
     {
         // Shoots a ray downwards to find what the player is standing on //
         Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit);
@@ -68,5 +67,28 @@ public class Player : ClientControlled
 
         // Adds the base movement force to the rigidbody //
         m_Body.AddForce(m_MoveDir.normalized * 50, ForceMode.Force);
+    }
+
+    private void UpdateGun()
+    {
+        // Does not need to update if they are not shooting //
+        if (Input.GetMouseButton(0) == false) { return; }
+
+        // Performs a raycast to see what they are looking at //
+        if (Physics.Raycast(transform.position, m_Orientation.forward, out RaycastHit info, Mathf.Infinity))
+        {
+            // Checks if it hit an enemy //
+            if (info.collider.tag == "Enemy")
+            {
+                Enemy.KillEnemy(info.collider.transform.parent.gameObject);
+            }
+        }
+    }
+
+    public override void OnFixedUpdate()
+    {
+        UpdateMovement();
+
+        UpdateGun();
     }
 }
