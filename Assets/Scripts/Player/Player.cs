@@ -5,6 +5,7 @@ public class Player : ClientControlled
     [Header("Internal references")]
     [SerializeField] Rigidbody m_Body;
     [SerializeField] Transform m_Orientation;
+    [SerializeField] Transform m_GunHold;
 
     PlayerCamera m_Camera = null;
 
@@ -16,6 +17,8 @@ public class Player : ClientControlled
         // Sets the camera to be it's child //
         m_Camera = PlayerCamera.Instance();
         m_Camera.transform.SetParent(transform, false);
+
+        m_GunHold.SetParent(m_Camera.transform, true);
     }
 
     public override void OnUpdate()
