@@ -10,13 +10,9 @@ public class LevelGenerator : MonoBehaviour
     [Header("References")]
     [SerializeField] Spawner m_PlayerSpawner;
     [SerializeField] Camera m_Camera;
-    [SerializeField] Text m_TimeTakenText;
     [SerializeField] NavMeshSurface m_NavMesh;
 
     private ValleyNode m_ValleyStart;
-
-    private double m_Time1;
-    private double m_Time2;
 
     private async void Start()
     {
@@ -25,18 +21,12 @@ public class LevelGenerator : MonoBehaviour
 
         // Removes the gameobject that the camera is attached to //
         Destroy(m_Camera.gameObject);
-
-        // Displays the time taken to the canvas //
-        m_TimeTakenText.text = $"Time taken: {m_Time1}s | {m_Time2}s";
     }
 
     private async Task SpawnLevelAsync()
     {
         // Requests the spawning of the LevelManager (network object) //
         ServerController.HostRequestSpawn("Level/LevelManager", Vector3.zero);
-
-        // Captures the start time //
-        Stopwatch stopwatch = Stopwatch.StartNew();
 
         // Generates the valley nodes and calculates the bounding box //
         m_ValleyStart = new ValleyNode();
@@ -115,25 +105,20 @@ public class LevelGenerator : MonoBehaviour
             GameObject.Instantiate(prefab, hitInfo.point, Quaternion.identity);
         });
 
-        // Captures how long the world generation took //
-        stopwatch.Stop();
-        m_Time1 = stopwatch.Elapsed.TotalSeconds;
-        stopwatch.Restart();
-
         // Yeilds control back to the main thread to keep UI responsive //
         await Task.Yield();
 
-        // Creates the nav mesh //
-        m_NavMesh.collectObjects = CollectObjects.All;
-        m_NavMesh.layerMask = LayerMask.GetMask("NavMeshSurface");
-        m_NavMesh.BuildNavMesh();
+        // Only the host needs to make the nav mesh as they are in control //
+        if (OnlineState.IsHost())
+        {
+            // Creates the nav mesh //
+            m_NavMesh.collectObjects = CollectObjects.All;
+            m_NavMesh.layerMask = LayerMask.GetMask("NavMeshSurface");
+            m_NavMesh.BuildNavMesh();
 
-        // Captures how long the nav mesh building took //
-        stopwatch.Stop();
-        m_Time2 = stopwatch.Elapsed.TotalSeconds;
-
-        // Yeilds control back to the main thread to keep UI responsive //
-        await Task.Yield();
+            // Yeilds control back to the main thread to keep UI responsive //
+            await Task.Yield();
+        }
 
         // Spawns the player after world generation finishes //
         Physics.Raycast(m_Camera.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity);
