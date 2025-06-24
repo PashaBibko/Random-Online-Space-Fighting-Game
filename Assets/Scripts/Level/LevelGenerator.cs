@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 
 using System.Diagnostics;
+using Unity.AI.Navigation;
 
 public class LevelGenerator : MonoBehaviour
 {
@@ -10,27 +11,30 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] Spawner m_PlayerSpawner;
     [SerializeField] Camera m_Camera;
     [SerializeField] Text m_TimeTakenText;
+    [SerializeField] NavMeshSurface m_NavMesh;
 
     private ValleyNode m_ValleyStart;
 
+    private double m_Time1;
+    private double m_Time2;
+
     private async void Start()
     {
-        // Captures the start time //
-        Stopwatch stopwatch = Stopwatch.StartNew();
-
         // Creates the level in the background //
         await SpawnLevelAsync();
 
         // Removes the gameobject that the camera is attached to //
         Destroy(m_Camera.gameObject);
 
-        // Calculates the time taken and applies it to the text //
-        stopwatch.Stop();
-        m_TimeTakenText.text = $"Time taken: {stopwatch.Elapsed.TotalSeconds}s";
+        // Displays the time taken to the canvas //
+        m_TimeTakenText.text = $"Time taken: {m_Time1}s | {m_Time2}s";
     }
 
     private async Task SpawnLevelAsync()
     {
+        // Captures the start time //
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         // Generates the valley nodes and calculates the bounding box //
         m_ValleyStart = new ValleyNode();
         m_ValleyStart.CalculateBoundingBox(out Vector2 min, out Vector2 max);
@@ -83,6 +87,19 @@ public class LevelGenerator : MonoBehaviour
                 await Task.Yield();
             }
         }
+
+        // Captures how long the world generation took //
+        stopwatch.Stop();
+        m_Time1 = stopwatch.Elapsed.TotalSeconds;
+        stopwatch.Restart();
+
+        // Creates the nav mesh //
+        m_NavMesh.collectObjects = CollectObjects.All;
+        m_NavMesh.BuildNavMesh();
+
+        // Captures how long the nav mesh building took //
+        stopwatch.Stop();
+        m_Time2 = stopwatch.Elapsed.TotalSeconds;
 
         // Spawns the player after world generation finishes //
         Physics.Raycast(m_Camera.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity);
