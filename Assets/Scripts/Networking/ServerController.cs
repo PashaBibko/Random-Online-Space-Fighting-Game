@@ -17,6 +17,48 @@ public class ServerController : NetworkBehaviour
         return sInstance.mPlayerCount.Value;
     }
 
+    public static bool HostRequestSpawn(string prefabName, Vector3 location)
+    {
+        // Returns false if there is no instance of the server controller //
+        if (sInstance == null) { return false; }
+
+        // Returns false if the client is not the host //
+        if (sInstance.IsHost == false) { return false; }
+
+        // Loads the prefab and makes sure it is valid //
+        GameObject prefab = Resources.Load<GameObject>(prefabName);
+        if (prefab == null)
+        {
+            Debug.LogError($"Invalid prefab [{prefabName}] passed to ServerController.HostRequestSpawn - prefab does not exist");
+            return false;
+        }
+
+        // Creates the prefab and locates the NetworkObject //
+        GameObject instance = GameObject.Instantiate(prefab, location, Quaternion.identity);
+        if (!instance.TryGetComponent<NetworkObject>(out var net))
+        {
+            Debug.LogError($"Invalid prefab [{prefabName}] passed to ServerController.HostRequestSpawn - prefab does not have a [Network Object] component");
+            return false;
+        }
+
+        // Spawns the object on the network and returns true //
+        net.Spawn();
+        return true;
+    }
+
+    public static void InitaliseOnNetwork(GameObject obj)
+    {
+        // Finds the NetworkObject if it has one //
+        if (!obj.TryGetComponent<NetworkObject>(out var net))
+        {
+            Debug.LogError($"GameObject [{obj.name}] passed to ServerController.InitaliseOnNetwork does not havea Network Object component");
+            return;
+        }
+
+        // Creates it on the network //
+        net.Spawn();
+    }
+
     // Tracks how many players are connected (shared between clients) //
     public NetworkVariable<int> mPlayerCount = new
     (

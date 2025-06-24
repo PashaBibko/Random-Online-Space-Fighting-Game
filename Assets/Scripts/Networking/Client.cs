@@ -57,6 +57,7 @@ public class Client : NetworkBehaviour
         if (prefab == null)
         {
             Debug.LogError($"Invalid prefab [{name}] passed to Client.SpawnNetworkGameObject - prefab does not exist");
+            return;
         }
 
         // Creates the prefab and locates the NetworkObject //
@@ -64,6 +65,7 @@ public class Client : NetworkBehaviour
         if (!instance.TryGetComponent<NetworkObject>(out var net))
         {
             Debug.LogError($"Invalid prefab [{name}] passed to Client.SpawnNetworkGameObject - prefab does not have a [Network Object] component");
+            return;
         }
 
         // Initalises the network object as owned by the client that called for it's creation //

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 6538067589144382218}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 5882051396762566724}
   m_Layer: 0
   m_Name: Orientation
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -172,7 +172,7 @@ GameObject:
   - component: {fileID: 2308306539639004273}
   m_Layer: 0
   m_Name: Controller
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -206,7 +206,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Body: {fileID: 4439162640434017215}
   m_Orientation: {fileID: 5882051396762566724}
-  m_Mass: 5
 --- !u!1 &8456145637147828786
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,7 +220,7 @@ GameObject:
   - component: {fileID: 1394511273020090702}
   m_Layer: 0
   m_Name: Model
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

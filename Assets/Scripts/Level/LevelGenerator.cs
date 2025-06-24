@@ -32,6 +32,9 @@ public class LevelGenerator : MonoBehaviour
 
     private async Task SpawnLevelAsync()
     {
+        // Requests the spawning of the LevelManager (network object) //
+        ServerController.HostRequestSpawn("Level/LevelManager", Vector3.zero);
+
         // Captures the start time //
         Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -88,7 +91,11 @@ public class LevelGenerator : MonoBehaviour
             }
         }
 
+        // Yeilds control back to the main thread to keep UI responsive //
+        await Task.Yield();
+
         // Generates the enemy spawners (temporary) //
+        EnemySpawner.Init();
         Unity.Mathematics.Random rng = new Unity.Mathematics.Random(1);
         m_ValleyStart.CallFuncOnNodes((ValleyNode node) =>
         {
@@ -113,6 +120,9 @@ public class LevelGenerator : MonoBehaviour
         m_Time1 = stopwatch.Elapsed.TotalSeconds;
         stopwatch.Restart();
 
+        // Yeilds control back to the main thread to keep UI responsive //
+        await Task.Yield();
+
         // Creates the nav mesh //
         m_NavMesh.collectObjects = CollectObjects.All;
         m_NavMesh.layerMask = LayerMask.GetMask("NavMeshSurface");
@@ -122,8 +132,17 @@ public class LevelGenerator : MonoBehaviour
         stopwatch.Stop();
         m_Time2 = stopwatch.Elapsed.TotalSeconds;
 
+        // Yeilds control back to the main thread to keep UI responsive //
+        await Task.Yield();
+
         // Spawns the player after world generation finishes //
         Physics.Raycast(m_Camera.transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity);
         m_PlayerSpawner.RequestSpawn(hit.point + Vector3.up);
+
+        // Yeilds control back to the main thread to keep UI responsive //
+        await Task.Yield();
+
+        // Starts the spawning loop in the LevelManager //
+        LevelManager.StartSpawnLoop();
     }
 }
