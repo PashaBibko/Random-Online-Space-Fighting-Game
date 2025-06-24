@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Player : ClientControlled
@@ -6,6 +7,7 @@ public class Player : ClientControlled
     [SerializeField] Rigidbody m_Body;
     [SerializeField] Transform m_Orientation;
     [SerializeField] Transform m_GunHold;
+    [SerializeField] LineRenderer m_BulletTracer;
 
     PlayerCamera m_Camera = null;
 
@@ -19,6 +21,8 @@ public class Player : ClientControlled
         m_Camera.transform.SetParent(transform, false);
 
         m_GunHold.SetParent(m_Camera.transform, true);
+
+        m_BulletTracer.enabled = false;
     }
 
     public override void OnUpdate()
@@ -72,13 +76,25 @@ public class Player : ClientControlled
         m_Body.AddForce(m_MoveDir.normalized * 50, ForceMode.Force);
     }
 
+    private IEnumerator RenderBulletTracer(Vector3 hit)
+    {
+        m_BulletTracer.enabled = true;
+
+        m_BulletTracer.SetPosition(0, m_GunHold.position);
+        m_BulletTracer.SetPosition(1, hit);
+
+        // Waits for the next frame before despawn //
+        yield return null;
+        m_BulletTracer.enabled = false;
+    }
+
     private void UpdateGun()
     {
         // Does not need to update if they are not shooting //
         if (Input.GetMouseButton(0) == false) { return; }
 
         // Performs a raycast to see what they are looking at //
-        if (Physics.Raycast(transform.position, m_Orientation.forward, out RaycastHit info, Mathf.Infinity))
+        if (Physics.Raycast(transform.position, m_Camera.transform.forward, out RaycastHit info, Mathf.Infinity))
         {
             // Checks if it hit an enemy //
             if (info.collider.tag == "Enemy")
@@ -86,6 +102,9 @@ public class Player : ClientControlled
                 Enemy.KillEnemy(info.collider.transform.parent.gameObject);
             }
         }
+
+        // Renders a bullet tracer //
+        StartCoroutine(RenderBulletTracer(info.point));
     }
 
     public override void OnFixedUpdate()
