@@ -88,6 +88,26 @@ public class LevelGenerator : MonoBehaviour
             }
         }
 
+        // Generates the enemy spawners (temporary) //
+        Unity.Mathematics.Random rng = new Unity.Mathematics.Random(1);
+        m_ValleyStart.CallFuncOnNodes((ValleyNode node) =>
+        {
+            // Does not spawn a spawner on the player spawn location //
+            if (node == m_ValleyStart) { return; }
+
+            // 1 in 10 chance to spawn a spawner //
+            if (rng.NextInt(0, 5) != 1) { return; }
+
+            // Raycasts to find the height at the given location //
+            Vector3 rayStart = node.Position() * 200;
+            rayStart.y = 5000;
+            Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity);
+
+            // Creates the enemy spawner prefab //
+            GameObject prefab = Resources.Load<GameObject>("Level/EnemySpawner");
+            GameObject.Instantiate(prefab, hitInfo.point, Quaternion.identity);
+        });
+
         // Captures how long the world generation took //
         stopwatch.Stop();
         m_Time1 = stopwatch.Elapsed.TotalSeconds;
