@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5119475329275635476}
   - component: {fileID: 165813178403030517}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: NavMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -60,7 +60,7 @@ GameObject:
   - component: {fileID: 179051955385119806}
   - component: {fileID: 388320445723548300}
   - component: {fileID: 3286599086986788750}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -164,7 +164,7 @@ GameObject:
   m_Component:
   - component: {fileID: 418244635245569502}
   - component: {fileID: 7529561662017864552}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: LevelSection
   m_TagString: Untagged
   m_Icon: {fileID: 0}

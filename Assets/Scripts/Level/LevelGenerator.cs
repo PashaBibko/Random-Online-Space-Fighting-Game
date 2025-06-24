@@ -115,6 +115,7 @@ public class LevelGenerator : MonoBehaviour
 
         // Creates the nav mesh //
         m_NavMesh.collectObjects = CollectObjects.All;
+        m_NavMesh.layerMask = LayerMask.GetMask("NavMeshSurface");
         m_NavMesh.BuildNavMesh();
 
         // Captures how long the nav mesh building took //
