@@ -1,4 +1,5 @@
 using System.Collections;
+using TreeEditor;
 using UnityEngine;
 
 public class Player : ClientControlled
@@ -35,6 +36,13 @@ public class Player : ClientControlled
         Vector2 rot = m_Camera.Rotation();
         m_Orientation.rotation = Quaternion.Euler(0, rot.y, 0);
     }
+
+    public override void OnLateUpdate()
+    {
+        // Updates the start position of the bullet tracer //
+        m_BulletTracer.SetPosition(0, m_GunHold.position);
+    }
+
     private void UpdateMovement()
     {
         // Shoots a ray downwards to find what the player is standing on //
@@ -80,7 +88,6 @@ public class Player : ClientControlled
     {
         m_BulletTracer.enabled = true;
 
-        m_BulletTracer.SetPosition(0, m_GunHold.position);
         m_BulletTracer.SetPosition(1, hit);
 
         // Waits for the next frame before despawn //
@@ -97,11 +104,14 @@ public class Player : ClientControlled
         if (Physics.Raycast(transform.position, m_Camera.transform.forward, out RaycastHit info, Mathf.Infinity))
         {
             // Checks if it hit an enemy //
-            if (info.collider.tag == "Enemy")
+            if (info.collider.CompareTag("Enemy"))
             {
                 Enemy.KillEnemy(info.collider.transform.parent.gameObject);
             }
         }
+
+        // If there was no hit just sets it far away in the correct direction //
+        else { info.point = transform.position + (m_Camera.transform.forward * 1000); }
 
         // Renders a bullet tracer //
         StartCoroutine(RenderBulletTracer(info.point));
