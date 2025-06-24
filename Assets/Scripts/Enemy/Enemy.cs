@@ -15,6 +15,8 @@ public class Enemy : NetworkBehaviour
         {
             // Makes sure only the host has the nav mesh agent //
             m_NavAgent = transform.parent.AddComponent<NavMeshAgent>();
+            m_NavAgent.baseOffset = 1;
+
             m_PlayerTarget = GameObject.FindGameObjectWithTag("Player");
         }
     }
