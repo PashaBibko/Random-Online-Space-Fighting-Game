@@ -1,46 +1,85 @@
 using System.Collections;
-using TreeEditor;
+using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : ClientControlled
 {
+    [Header("Player sections")]
+    [SerializeField] Transform m_Orientation;
+    [SerializeField] Transform m_CameraHolder;
+
     [Header("Internal references")]
     [SerializeField] Rigidbody m_Body;
-    [SerializeField] Transform m_Orientation;
-    [SerializeField] Transform m_GunHold;
     [SerializeField] LineRenderer m_BulletTracer;
 
-    PlayerCamera m_Camera = null;
+    // Network variables //
+
+    public NetworkVariable<Vector2> m_Rotation = new
+    (
+        new Vector2(0, 0),                      // <- Default value
+        NetworkVariableReadPermission.Everyone, // <- Allows other clients to read
+        NetworkVariableWritePermission.Owner    // <- Only the owner client is able to write
+    );
+
+    // Local variables //
+
+    Vector2 m_LocalRot;
 
     Vector3 m_MoveDir;
     Vector2 m_Input;
 
     public override void OnStart()
     {
-        // Sets the camera to be it's child //
-        m_Camera = PlayerCamera.Instance();
-        m_Camera.transform.SetParent(transform, false);
-
-        m_GunHold.SetParent(m_Camera.transform, true);
+        // Creates a camera and audio listener as they cannot be shared in the prefab //
+        m_CameraHolder.AddComponent<AudioListener>();
+        m_CameraHolder.AddComponent<Camera>();
 
         m_BulletTracer.enabled = false;
     }
 
     public override void OnUpdate()
     {
-        // Updates user input //
+        // Updates user keyboard input //
         m_Input.x = Input.GetAxisRaw("Horizontal");
         m_Input.y = Input.GetAxisRaw("Vertical");
 
+        // Updates user mouse input //
+        Vector2 diff = new
+        (
+            Input.GetAxisRaw("Mouse X") * Time.deltaTime * 600f,
+            Input.GetAxisRaw("Mouse Y") * Time.deltaTime * 400f
+        );
+
+        // Applies the change in rotation //
+        // Why is it like this, I have no idea but it works ig //
+        m_LocalRot.x -= diff.y;
+        m_LocalRot.y += diff.x;
+
+        // Stops the rotation values for glitching the camera //
+        m_LocalRot.x = Mathf.Clamp(m_LocalRot.x, -90f, 90f);
+        m_LocalRot.y = m_LocalRot.y % 360;
+
         // Updates the camera angle //
-        Vector2 rot = m_Camera.Rotation();
-        m_Orientation.rotation = Quaternion.Euler(0, rot.y, 0);
+        m_Rotation.Value = m_LocalRot;
+        m_CameraHolder.rotation = Quaternion.Euler(m_LocalRot.x, m_LocalRot.y, 0);
+        m_Orientation.rotation = Quaternion.Euler(0, m_Rotation.Value.y, 0);
+    }
+
+    public override void OnForiegnUpdate()
+    {
+        // Transfers the netowrk value to the client //
+        m_LocalRot = m_Rotation.Value;
+        
+        // Sets the orientation value //
+        m_CameraHolder.rotation = Quaternion.Euler(m_LocalRot.x, m_LocalRot.y, 0);
+        m_Orientation.rotation = Quaternion.Euler(0, m_Rotation.Value.y, 0);
     }
 
     public override void OnLateUpdate()
     {
         // Updates the start position of the bullet tracer //
-        m_BulletTracer.SetPosition(0, m_GunHold.position);
+        //m_BulletTracer.SetPosition(0, m_GunHold.position);
     }
 
     private void UpdateMovement()
@@ -101,7 +140,7 @@ public class Player : ClientControlled
         if (Input.GetMouseButton(0) == false) { return; }
 
         // Performs a raycast to see what they are looking at //
-        if (Physics.Raycast(transform.position, m_Camera.transform.forward, out RaycastHit info, Mathf.Infinity))
+        if (Physics.Raycast(transform.position, m_CameraHolder.forward, out RaycastHit info, Mathf.Infinity))
         {
             // Checks if it hit an enemy //
             if (info.collider.CompareTag("Enemy"))
@@ -111,7 +150,7 @@ public class Player : ClientControlled
         }
 
         // If there was no hit just sets it far away in the correct direction //
-        else { info.point = transform.position + (m_Camera.transform.forward * 1000); }
+        else { info.point = transform.position + (m_CameraHolder.forward * 1000); }
 
         // Renders a bullet tracer //
         StartCoroutine(RenderBulletTracer(info.point));
