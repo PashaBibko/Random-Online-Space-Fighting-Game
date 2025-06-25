@@ -22,7 +22,16 @@ public class Player : ClientControlled
         NetworkVariableWritePermission.Owner    // <- Only the owner client is able to write
     );
 
+    public NetworkVariable<PlayerGlobalState.PlayerClass> m_PrimaryPlayerClass = new
+    (
+        PlayerGlobalState.PlayerClass.GUNNER,   // <- Default value
+        NetworkVariableReadPermission.Everyone, // <- Allows other clients to read
+        NetworkVariableWritePermission.Owner    // <- Only the owner client is able to write
+    );
+
     // Local variables //
+
+    PlayerGun m_ActiveGun;
 
     Vector2 m_LocalRot;
 
@@ -35,7 +44,39 @@ public class Player : ClientControlled
         m_CameraHolder.AddComponent<AudioListener>();
         m_CameraHolder.AddComponent<Camera>();
 
+        // Sets the primary class according to what the PlayerGlobalState has //
+        m_PrimaryPlayerClass.Value = PlayerGlobalState.PrimaryClass;
+
+        // Has the bullet tracer disabled by default //
         m_BulletTracer.enabled = false;
+
+        // Finds the correct gun prefab for the player //
+        GameObject gunPrefab = null;
+        switch (m_PrimaryPlayerClass.Value)
+        {
+            case PlayerGlobalState.PlayerClass.GUNNER:
+                gunPrefab = Resources.Load<GameObject>("Guns/GunnerPrimary");
+                break;
+
+            case PlayerGlobalState.PlayerClass.SCOUT:
+                gunPrefab = Resources.Load<GameObject>("Guns/ScoutPrimary");
+                break;
+
+            case PlayerGlobalState.PlayerClass.ENGIE:
+                gunPrefab = Resources.Load<GameObject>("Guns/EngiePrimary");
+                break;
+        }
+
+        // Verifies that it has been loaded //
+        if (gunPrefab == null)
+        {
+            Debug.LogError("Could not find gun prefab for player");
+            return;
+        }
+
+        // Spawns it in the world as a child of the camera and retrives the needed info //
+        GameObject gunInstance = GameObject.Instantiate(gunPrefab, m_CameraHolder);
+        m_ActiveGun = gunInstance.GetComponent<PlayerGun>();
     }
 
     public override void OnUpdate()
@@ -79,7 +120,7 @@ public class Player : ClientControlled
     public override void OnLateUpdate()
     {
         // Updates the start position of the bullet tracer //
-        //m_BulletTracer.SetPosition(0, m_GunHold.position);
+        m_BulletTracer.SetPosition(0, m_ActiveGun.MuzzleLocation());
     }
 
     private void UpdateMovement()

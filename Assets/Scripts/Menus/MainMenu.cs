@@ -47,7 +47,7 @@ public class MainMenu : MonoBehaviour
             case 1:
                 return PlayerGlobalState.PlayerClass.SCOUT;
 
-            case 3:
+            case 2:
                 return PlayerGlobalState.PlayerClass.ENGIE;
 
             default:
