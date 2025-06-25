@@ -94,6 +94,8 @@
 **Ability 1**
 **Ability 2**
 
+### Subclasses
+
 **Rookie(Engie)**
 - Base class
 
