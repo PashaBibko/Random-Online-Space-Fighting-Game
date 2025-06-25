@@ -83,6 +83,10 @@ public class Player : ClientControlled
 
         // Has the bullet tracer disabled by default //
         m_BulletTracer.enabled = false;
+
+        // Spawns the player canvas //
+        GameObject canvas = Resources.Load<GameObject>("PlayerCanvas");
+        GameObject.Instantiate(canvas);
     }
 
     public override void OnUpdate()
