@@ -6,9 +6,9 @@
 | Scout  | Sniper  | SMG        |
 | Engie  | AR      | Shotgun    |
 
-### Gunner
+## Gunner
 
-##### Identity
+### Identity
 
 - Medium health
 - Medium storage
@@ -28,7 +28,7 @@
 - Has x ammount
 - No cooldown
 
-###### Subclasses
+### Subclasses
 
 **Rookie (Gunner)**
 - Base class
@@ -47,9 +47,9 @@
 - Lower health
 - Gains a less powerful grapple hook
 
-### Scout
+## Scout
 
-##### Identity
+### Identity
 
 - Low health
 - Low storage
@@ -68,7 +68,7 @@
 - Short cooldown
 - Fast speed
 
-###### Subclasses
+### Subclasses
 
 **Rookie(Scout)**
 - Base class
@@ -82,9 +82,9 @@
 
 **Assasin (Scout/Gunner)**
 
-### Engie
+## Engie
 
-##### Identity
+### Identity
 
 - High health
 - High storage
