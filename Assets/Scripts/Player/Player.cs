@@ -38,36 +38,28 @@ public class Player : ClientControlled
     Vector3 m_MoveDir;
     Vector2 m_Input;
 
-    public override void OnStart()
+    private GameObject GetClassGun()
     {
-        // Creates a camera and audio listener as they cannot be shared in the prefab //
-        m_CameraHolder.AddComponent<AudioListener>();
-        m_CameraHolder.AddComponent<Camera>();
-
-        // Sets the primary class according to what the PlayerGlobalState has //
-        m_PrimaryPlayerClass.Value = PlayerGlobalState.PrimaryClass;
-
-        // Has the bullet tracer disabled by default //
-        m_BulletTracer.enabled = false;
-
-        // Finds the correct gun prefab for the player //
-        GameObject gunPrefab = null;
         switch (m_PrimaryPlayerClass.Value)
         {
             case PlayerGlobalState.PlayerClass.GUNNER:
-                gunPrefab = Resources.Load<GameObject>("Guns/GunnerPrimary");
-                break;
+                return Resources.Load<GameObject>("Guns/GunnerPrimary");
 
             case PlayerGlobalState.PlayerClass.SCOUT:
-                gunPrefab = Resources.Load<GameObject>("Guns/ScoutPrimary");
-                break;
+                return Resources.Load<GameObject>("Guns/ScoutPrimary");
 
             case PlayerGlobalState.PlayerClass.ENGIE:
-                gunPrefab = Resources.Load<GameObject>("Guns/EngiePrimary");
-                break;
-        }
+                return Resources.Load<GameObject>("Guns/EngiePrimary");
 
-        // Verifies that it has been loaded //
+            default:
+                return null;
+        }
+    }
+
+    private void SpawnGun()
+    {
+        // Finds the correct gun prefab for the player //
+        GameObject gunPrefab = GetClassGun();
         if (gunPrefab == null)
         {
             Debug.LogError("Could not find gun prefab for player");
@@ -77,6 +69,20 @@ public class Player : ClientControlled
         // Spawns it in the world as a child of the camera and retrives the needed info //
         GameObject gunInstance = GameObject.Instantiate(gunPrefab, m_CameraHolder);
         m_ActiveGun = gunInstance.GetComponent<PlayerGun>();
+    }
+
+    public override void OnStart()
+    {
+        // Creates a camera and audio listener as they cannot be shared in the prefab //
+        m_CameraHolder.AddComponent<AudioListener>();
+        m_CameraHolder.AddComponent<Camera>();
+
+        // Sets the primary class according to what the PlayerGlobalState has //
+        m_PrimaryPlayerClass.Value = PlayerGlobalState.PrimaryClass;
+        SpawnGun(); // Then spawns the players gun
+
+        // Has the bullet tracer disabled by default //
+        m_BulletTracer.enabled = false;
     }
 
     public override void OnUpdate()
@@ -115,6 +121,19 @@ public class Player : ClientControlled
         // Sets the orientation value //
         m_CameraHolder.rotation = Quaternion.Euler(m_LocalRot.x, m_LocalRot.y, 0);
         m_Orientation.rotation = Quaternion.Euler(0, m_Rotation.Value.y, 0);
+
+        // Creates a gun for the player if they don't have one //
+        if (m_ActiveGun == null) { SpawnGun(); }
+
+        // Else checks if they have the incorrect weapon //
+        else if (m_ActiveGun.OwnerClass() != m_PrimaryPlayerClass.Value)
+        {
+            // Destroys the old one before creating the new one //
+            Destroy(m_ActiveGun.gameObject);
+            SpawnGun();
+
+            Debug.Log("Destroyed incorrect gun");
+        }
     }
 
     public override void OnLateUpdate()
