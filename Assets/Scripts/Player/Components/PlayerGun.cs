@@ -1,3 +1,4 @@
+using Mono.Cecil;
 using UnityEngine;
 
 public class PlayerGun : MonoBehaviour
@@ -14,14 +15,12 @@ public class PlayerGun : MonoBehaviour
     float m_LastShot = Mathf.NegativeInfinity;
     public PlayerGlobalState.PlayerClass OwnerClass() => m_OwnerClass;
 
-    public void ShootGun(Vector3 playerPos, Vector3 rayDir)
+    public bool ShootGun(Vector3 playerPos, Vector3 rayDir)
     {
         // Checks if the player can fire the gun yet //
         float minDif = 1f / m_Firerate;
         if (minDif < Time.time - m_LastShot)
         {
-            m_LastShot = Time.time;
-
             // Performs a raycast to see what they are looking at //
             if (Physics.Raycast(playerPos, rayDir, out RaycastHit info, Mathf.Infinity))
             {
@@ -32,9 +31,26 @@ public class PlayerGun : MonoBehaviour
                 }
             }
 
-            // Enables the muzzle flash //
-            m_MuzzleFlash.SetActive(true);
+            // Runs the visual logic of the gun shooting //
+            VisualShoot();
+
+            // Player did shoot the gun //
+            return true;
         }
+
+        // Player did not shoot the gun //
+        return false;
+    }
+
+    // Visual effects of the gun being shot //
+    // Used for non-owning clients to make it look like the gun is being shot //
+    public void VisualShoot()
+    {
+        // Updates the last time that it was shot //
+        m_LastShot = Time.time;
+
+        // Enables the muzzle flash //
+        m_MuzzleFlash.SetActive(true);
     }
 
     private void LateUpdate()

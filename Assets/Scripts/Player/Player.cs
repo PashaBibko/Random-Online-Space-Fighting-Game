@@ -1,9 +1,8 @@
-using System.Collections;
 using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Player : ClientControlled
+public partial class Player : ClientControlled
 {
     [Header("Player sections")]
     [SerializeField] Transform m_Orientation;
@@ -114,10 +113,7 @@ public class Player : ClientControlled
 
         // Shoots the player gun if the player is pressing left click //
         // Done here instead of fixed update to feel more responsive //
-        if (Input.GetMouseButton(0))
-        {
-            m_ActiveGun.ShootGun(transform.position, m_CameraHolder.forward);
-        }
+        if (Input.GetMouseButton(0)) { ShootGun(); }
     }
 
     public override void OnForiegnUpdate()
