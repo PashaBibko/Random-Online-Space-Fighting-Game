@@ -82,6 +82,10 @@ public partial class Player : ClientControlled
         // Spawns the player canvas //
         GameObject canvas = Resources.Load<GameObject>("PlayerCanvas");
         GameObject.Instantiate(canvas);
+
+        // Locks the users mouse //
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public override void OnUpdate()
