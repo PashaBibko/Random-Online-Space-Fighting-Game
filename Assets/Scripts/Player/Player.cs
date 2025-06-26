@@ -11,7 +11,6 @@ public class Player : ClientControlled
 
     [Header("Internal references")]
     [SerializeField] Rigidbody m_Body;
-    [SerializeField] LineRenderer m_BulletTracer;
 
     // Network variables //
 
@@ -81,9 +80,6 @@ public class Player : ClientControlled
         m_PrimaryPlayerClass.Value = PlayerGlobalState.PrimaryClass;
         SpawnGun(); // Then spawns the players gun
 
-        // Has the bullet tracer disabled by default //
-        m_BulletTracer.enabled = false;
-
         // Spawns the player canvas //
         GameObject canvas = Resources.Load<GameObject>("PlayerCanvas");
         GameObject.Instantiate(canvas);
@@ -115,6 +111,13 @@ public class Player : ClientControlled
         m_Rotation.Value = m_LocalRot;
         m_CameraHolder.rotation = Quaternion.Euler(m_LocalRot.x, m_LocalRot.y, 0);
         m_Orientation.rotation = Quaternion.Euler(0, m_Rotation.Value.y, 0);
+
+        // Shoots the player gun if the player is pressing left click //
+        // Done here instead of fixed update to feel more responsive //
+        if (Input.GetMouseButton(0))
+        {
+            m_ActiveGun.ShootGun(transform.position, m_CameraHolder.forward);
+        }
     }
 
     public override void OnForiegnUpdate()
@@ -140,13 +143,7 @@ public class Player : ClientControlled
         }
     }
 
-    public override void OnLateUpdate()
-    {
-        // Updates the start position of the bullet tracer //
-        m_BulletTracer.SetPosition(0, m_ActiveGun.MuzzleLocation());
-    }
-
-    private void UpdateMovement()
+    public override void OnFixedUpdate()
     {
         // Shoots a ray downwards to find what the player is standing on //
         Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit);
@@ -185,45 +182,5 @@ public class Player : ClientControlled
 
         // Adds the base movement force to the rigidbody //
         m_Body.AddForce(m_MoveDir.normalized * 50, ForceMode.Force);
-    }
-
-    private IEnumerator RenderBulletTracer(Vector3 hit)
-    {
-        m_BulletTracer.enabled = true;
-
-        m_BulletTracer.SetPosition(1, hit);
-
-        // Waits for the next frame before despawn //
-        yield return null;
-        m_BulletTracer.enabled = false;
-    }
-
-    private void UpdateGun()
-    {
-        // Does not need to update if they are not shooting //
-        if (Input.GetMouseButton(0) == false) { return; }
-
-        // Performs a raycast to see what they are looking at //
-        if (Physics.Raycast(transform.position, m_CameraHolder.forward, out RaycastHit info, Mathf.Infinity))
-        {
-            // Checks if it hit an enemy //
-            if (info.collider.CompareTag("Enemy"))
-            {
-                Enemy.KillEnemy(info.collider.transform.parent.gameObject);
-            }
-        }
-
-        // If there was no hit just sets it far away in the correct direction //
-        else { info.point = transform.position + (m_CameraHolder.forward * 1000); }
-
-        // Renders a bullet tracer //
-        StartCoroutine(RenderBulletTracer(info.point));
-    }
-
-    public override void OnFixedUpdate()
-    {
-        UpdateMovement();
-
-        UpdateGun();
     }
 }

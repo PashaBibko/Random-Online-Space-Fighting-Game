@@ -467,7 +467,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02ccbd93cab7d0c40af40d32dddbcf12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_MuzzleLocation: {fileID: 8174781350307450856}
+  m_OwnerClass: 0
+  m_Firerate: 0
+  m_MuzzleFlashDuration: 0.05
+  m_MuzzleFlash: {fileID: 0}
 --- !u!1 &5212759777109486978
 GameObject:
   m_ObjectHideFlags: 0
