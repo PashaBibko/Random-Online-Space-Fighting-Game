@@ -33,19 +33,19 @@ public static class MeshFactory
         }
     }
 
-    private static Color GenColor(float a, float b, float c)
+    private static Color GenColor(float a, float b, float c, float d)
     {
-        float avg = (a + b + c) / 3f;
+        float avg = (a + b + c + d) / 4f;
         float e = 0.35f;
 
         if (avg < e)
         {
             avg = avg * (1 / e);
 
-            Color d = new(6 / 255f, 75 / 255f, 0 / 255f);
-            Color l = new(96 / 255f, 255 / 255f, 82 / 255f);
+            Color drk = new(6 / 255f, 75 / 255f, 0 / 255f);
+            Color lgt = new(96 / 255f, 255 / 255f, 82 / 255f);
 
-            return Color.Lerp(l, d, avg);
+            return Color.Lerp(lgt, drk, avg);
         }
 
         if (avg > 0.7f)
@@ -165,9 +165,11 @@ public static class MeshFactory
                 tl.y = SampleNoise(tl, offset, 587, valley);
                 tr.y = SampleNoise(tr, offset, 587, valley);
 
-                // Creates the colors before y-modification //
-                Color c1 = GenColor(bl.y, tl.y, tr.y);
-                Color c2 = GenColor(bl.y, tr.y, br.y);
+                // Creates the color before y-modification //
+                Color c1 = GenColor(bl.y, br.y, tl.y, tr.y);
+                float colorNoise = SamplePerlin(bl, offset, 1.4f);
+                Color c2 = new Color(colorNoise, colorNoise, colorNoise);
+                Color c3 = Color.Lerp(c1, c2, 0.1f);
 
                 bl.y *= 350;
                 br.y *= 350;
@@ -180,9 +182,9 @@ public static class MeshFactory
                 data.verticies[index + 2] = tr;
 
                 // Triangle 1 color //
-                data.colors[index + 0] = c1;
-                data.colors[index + 1] = c1;
-                data.colors[index + 2] = c1;
+                data.colors[index + 0] = c3;
+                data.colors[index + 1] = c3;
+                data.colors[index + 2] = c3;
 
                 // Triangle 1 indecies //
                 data.triangles[index + 0] = index + 0;
@@ -195,9 +197,9 @@ public static class MeshFactory
                 data.verticies[index + 5] = br;
 
                 // Triangle 2 color //
-                data.colors[index + 3] = c2;
-                data.colors[index + 4] = c2;
-                data.colors[index + 5] = c2;
+                data.colors[index + 3] = c3;
+                data.colors[index + 4] = c3;
+                data.colors[index + 5] = c3;
 
                 // Triangle 2 indecies //
                 data.triangles[index + 3] = index + 3;
