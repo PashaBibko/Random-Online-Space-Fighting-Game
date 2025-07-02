@@ -1,0 +1,125 @@
+using UnityEngine;
+
+public abstract class HeightMapFunction : ScriptableObject
+{
+    public abstract float SampleHeight(Vector2 location, int seed);
+}
+
+public partial class TerrainGenerator : MonoBehaviour
+{
+    [Header("References")]
+    [SerializeField] Material m_ChunkRenderMaterial;
+    [SerializeField] HeightMapFunction m_HeightMapFunction;
+
+    [Header("Generation Settings")]
+    [SerializeField] uint m_ChunkSampleCount;
+    [SerializeField] uint m_ChunkSize;
+    [SerializeField] Vector2Int m_ChunkCount;
+
+    [Header("Noise settings")]
+    [SerializeField] uint m_WorldSeed;
+    [SerializeField] uint m_WorldScale;
+    [SerializeField] bool m_RandomiseWorldSeed;
+
+    [Header("Erosion settings")]
+    [Range(2, 8), SerializeField] int erosionRadius;
+    [Range(0, 1), SerializeField] float inertia; // At zero, water will instantly change direction to flow downhill. At 1, water will never change direction. 
+    [SerializeField] float sedimentCapacityFactor; // Multiplier for how much sediment a droplet can carry
+    [SerializeField] float minSedimentCapacity; // Used to prevent carry capacity getting too close to zero on flatter terrain
+    [Range(0, 1), SerializeField] float erodeSpeed;
+    [Range(0, 1), SerializeField] float depositSpeed;
+    [Range(0, 1), SerializeField] float evaporateSpeed;
+    [SerializeField] float gravity;
+    [SerializeField] int maxDropletLifetime;
+    [SerializeField] float initialWaterVolume;
+    [SerializeField] float initialSpeed;
+    [SerializeField] bool runErosionSimulation;
+
+    float[] m_Heightmap;
+
+    int width = -1;
+    int height = -1;
+
+    // Indices and weights of erosion brush precomputed for every node //
+    int[][] erosionBrushIndices;
+    float[][] erosionBrushWeights;
+    System.Random prng;
+
+    private void Start()
+    {
+        // Randomises the world seed //
+        if (m_RandomiseWorldSeed) { m_WorldSeed = (uint)Random.Range(1, 10000); }
+
+        // Allocates the memory for the heightmap //
+        m_Heightmap = new float[(m_ChunkCount.x * m_ChunkSampleCount + 1) * (m_ChunkCount.y * m_ChunkSampleCount + 1)];
+        width = (int)(m_ChunkCount.x * m_ChunkSampleCount + 1);
+        height = (int)(m_ChunkCount.y * m_ChunkSampleCount + 1);
+
+        // Generates the contents of the heightmap //
+        for (int x = 0; x < width; x++)
+        {
+            for (int z = 0; z < height; z++)
+            {
+                // Determines the world position of where the heightmap point is //
+                Vector2 pos = new Vector2((float)x / m_ChunkSampleCount, (float)z / m_ChunkSampleCount) * m_ChunkSize;
+                Vector2 samplePos = pos / m_WorldScale;
+
+                // Samples perlin noise at the location and applies it to the heightmap //
+                m_Heightmap[(z * width) + x] = m_HeightMapFunction.SampleHeight(samplePos, (int)m_WorldSeed);
+            }
+        }
+
+        // Runs the erosion (if it is referenced) //
+        if (runErosionSimulation)
+        {
+            Erode(m_Heightmap, new Vector2Int(width, height), 1_000_000);
+
+            // Smooths the heightmap as erosion can make it a bit too bumpy //
+            float[] temp = new float[width * height];
+            for (int x = 1; x < width - 1; x++)
+            {
+                for (int y = 1; y < height - 1; y++)
+                {
+                    float total = m_Heightmap[(y * width) + x] * 2;
+
+                    for (int nx = -1; nx <= 1; nx++)
+                    {
+                        for (int ny = -1; ny <= 1; ny++)
+                        {
+                            total += m_Heightmap[((y + ny) * width) + (x + nx)];
+                        }
+                    }
+
+                    temp[(y * width) + x] = total / 12f;
+                }
+            }
+
+            m_Heightmap = temp;
+        }
+
+        // Generates the worlds chunks //
+        for (int x = 0; x < m_ChunkCount.x; x++)
+        {
+            for (int z = 0; z < m_ChunkCount.y; z++)
+            {
+                // Creates a gameobject to hold the needed info //
+                GameObject chunk = new("WorldChunk");
+                chunk.transform.SetParent(transform, false);
+
+                // Places it in the world correctly //
+                chunk.transform.position = new Vector3(x * m_ChunkSize, 0, z * m_ChunkSize);
+
+                // Adds the components of the world chunk //
+                MeshRenderer renderer = chunk.AddComponent<MeshRenderer>();
+                MeshFilter filter = chunk.AddComponent<MeshFilter>();
+
+                // Generates the mesh and assigns it //
+                Mesh meshSect = GenerateMeshSection(new Vector2(x, z));
+                filter.sharedMesh = meshSect;
+
+                // Assigns a material so it doesn't render as pink //
+                renderer.material = m_ChunkRenderMaterial;
+            }
+        }
+    }
+}

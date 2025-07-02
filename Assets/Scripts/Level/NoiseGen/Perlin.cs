@@ -49,9 +49,6 @@ public static class Perlin
 
     public static float Sample(Vector2 pos, int seed)
     {
-        // Adds a large constant as the algorithim breaks with negative values //
-        pos = pos + new Vector2(1000, 1000);
-
         // Determines the grid cell coordinates //
         int x0 = (int)pos.x;
         int x1 = x0 + 1;
