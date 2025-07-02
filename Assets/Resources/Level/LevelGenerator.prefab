@@ -79,12 +79,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ChunkRenderMaterial: {fileID: 2100000, guid: 8effc0ca222ee5d44a8dd18c4205dfdb, type: 2}
   m_HeightMapFunction: {fileID: 11400000, guid: b6dadfb0f00d1cf40a6867dc4ee232e7, type: 2}
-  m_ChunkSampleCount: 100
+  m_RandomiseWorldSeed: 0
+  runErosionSimulation: 0
+  m_EnableSmoothing: 0
+  m_ChunkSampleCount: 250
   m_ChunkSize: 100
   m_ChunkCount: {x: 5, y: 5}
-  m_WorldSeed: 0
-  m_WorldScale: 133
-  m_RandomiseWorldSeed: 1
+  m_WorldSeed: 23117
+  m_WorldScale: 200
   erosionRadius: 3
   inertia: 0
   sedimentCapacityFactor: 2
@@ -96,7 +98,7 @@ MonoBehaviour:
   maxDropletLifetime: 30
   initialWaterVolume: 1
   initialSpeed: 1
-  runErosionSimulation: 1
+  m_WaterDropsPerSample: 3
 --- !u!1 &5836071572536544287
 GameObject:
   m_ObjectHideFlags: 0

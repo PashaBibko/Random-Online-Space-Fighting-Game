@@ -12,6 +12,11 @@ public partial class TerrainGenerator : MonoBehaviour
     [SerializeField] Material m_ChunkRenderMaterial;
     [SerializeField] HeightMapFunction m_HeightMapFunction;
 
+    [Header("Controls")]
+    [SerializeField] bool m_RandomiseWorldSeed;
+    [SerializeField] bool runErosionSimulation;
+    [SerializeField] bool m_EnableSmoothing;
+
     [Header("Generation Settings")]
     [SerializeField] uint m_ChunkSampleCount;
     [SerializeField] uint m_ChunkSize;
@@ -20,13 +25,12 @@ public partial class TerrainGenerator : MonoBehaviour
     [Header("Noise settings")]
     [SerializeField] uint m_WorldSeed;
     [SerializeField] uint m_WorldScale;
-    [SerializeField] bool m_RandomiseWorldSeed;
 
     [Header("Erosion settings")]
     [Range(2, 8), SerializeField] int erosionRadius;
-    [Range(0, 1), SerializeField] float inertia; // At zero, water will instantly change direction to flow downhill. At 1, water will never change direction. 
-    [SerializeField] float sedimentCapacityFactor; // Multiplier for how much sediment a droplet can carry
-    [SerializeField] float minSedimentCapacity; // Used to prevent carry capacity getting too close to zero on flatter terrain
+    [Range(0, 1), SerializeField] float inertia; 
+    [SerializeField] float sedimentCapacityFactor;
+    [SerializeField] float minSedimentCapacity;
     [Range(0, 1), SerializeField] float erodeSpeed;
     [Range(0, 1), SerializeField] float depositSpeed;
     [Range(0, 1), SerializeField] float evaporateSpeed;
@@ -34,7 +38,7 @@ public partial class TerrainGenerator : MonoBehaviour
     [SerializeField] int maxDropletLifetime;
     [SerializeField] float initialWaterVolume;
     [SerializeField] float initialSpeed;
-    [SerializeField] bool runErosionSimulation;
+    [SerializeField] int m_WaterDropsPerSample;
 
     float[] m_Heightmap;
 
@@ -88,15 +92,18 @@ public partial class TerrainGenerator : MonoBehaviour
         // Runs the erosion (if it is referenced) //
         if (runErosionSimulation)
         {
-            Erode(m_Heightmap, new Vector2Int(width, height), 1_000_000);
+            Erode(m_Heightmap, new Vector2Int(width, height), m_Heightmap.Length * m_WaterDropsPerSample);
+        }
 
+        if (m_EnableSmoothing)
+        {
             // Smooths the heightmap as erosion can make it a bit too bumpy //
             float[] temp = new float[width * height];
             for (int x = 1; x < width - 1; x++)
             {
                 for (int y = 1; y < height - 1; y++)
                 {
-                    float total = m_Heightmap[(y * width) + x] * 2;
+                    float total = m_Heightmap[(y * width) + x];
 
                     for (int nx = -1; nx <= 1; nx++)
                     {
@@ -106,7 +113,7 @@ public partial class TerrainGenerator : MonoBehaviour
                         }
                     }
 
-                    temp[(y * width) + x] = total / 12f;
+                    temp[(y * width) + x] = total / 9f;
                 }
             }
 
