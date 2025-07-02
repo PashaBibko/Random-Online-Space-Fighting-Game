@@ -85,18 +85,18 @@ MonoBehaviour:
   m_WorldSeed: 0
   m_WorldScale: 133
   m_RandomiseWorldSeed: 1
-  erosionRadius: 2
+  erosionRadius: 3
   inertia: 0
-  sedimentCapacityFactor: 0
-  minSedimentCapacity: 0
-  erodeSpeed: 0
-  depositSpeed: 0
-  evaporateSpeed: 0
-  gravity: 0
-  maxDropletLifetime: 0
-  initialWaterVolume: 0
-  initialSpeed: 0
-  runErosionSimulation: 0
+  sedimentCapacityFactor: 2
+  minSedimentCapacity: 0.01
+  erodeSpeed: 0.4
+  depositSpeed: 0.2
+  evaporateSpeed: 0.1
+  gravity: 10
+  maxDropletLifetime: 30
+  initialWaterVolume: 1
+  initialSpeed: 1
+  runErosionSimulation: 1
 --- !u!1 &5836071572536544287
 GameObject:
   m_ObjectHideFlags: 0
