@@ -1,0 +1,103 @@
+#pragma kernel CSMain
+
+// Constants set by the C# script calling the computer shader //
+cbuffer SettingsBuffer : register(b0)
+{
+    // Noise settings //
+    int octaves;
+    float persistence;
+    float lacunarity;
+    float scale;
+    int seed;
+    
+    // Grid settings //
+    int height;
+    int width;
+};
+
+// Output of the compute shader //
+RWStructuredBuffer<float> ResultBuffer;
+
+// Generates a pseduo random gradient vector given the position and random seed //
+float GradientVector (int cX, int cY, float2 pos)
+{
+    // Makes the seed modify the output //
+    uint a = (uint) (cX + seed);
+    uint b = (uint) (cY + seed);
+
+    // General purpose hashing function (with precomputed values) //
+    a *= 328415744u;
+    
+    b ^= (a << 16) | (a >> 16);
+    b *= 191152071u;
+
+    a ^= (b << 16) | (b >> 16);
+    a *= 2048419325u;
+
+    float angle = a * 1.4629180792671596e-9f;
+    
+    // Calculates the gradient //
+    float gradientX = sin(angle);
+    float gradientY = cos(angle);
+    
+    float diffX = pos.x - cX;
+    float diffY = pos.y - cY;
+    
+    return diffX * gradientX + diffY * gradientY;
+}
+
+float SamplePerlin(float2 pos)
+{
+    // Calculates the grid cell coords //
+    int x0 = (int) pos.x;
+    int x1 = x0 + 1;
+    
+    int y0 = (int) pos.y;
+    int y1 = y1 + 1;
+    
+    // Interpolation weights //
+    float weightX = pos.x - x0;
+    float weightY = pos.y - y0;
+    
+    // Grid gradients //
+    float grad0 = GradientVector(x0, y0, pos);
+    float grad1 = GradientVector(x1, y0, pos);
+    float grad2 = GradientVector(x0, y1, pos);
+    float grad3 = GradientVector(x1, y1, pos);
+    
+    // Lerps between the gradients to find the local gradient //
+    float l0 = lerp(grad0, grad1, weightX);
+    float l1 = lerp(grad2, grad3, weightX);
+    return clamp(lerp(l0, l1, weightY) + 0.5f, 0, 1);
+}
+
+[numthreads(8,8,1)] void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // Early returns on elements outside of the grid //
+    if (id.x >= width || id.y >= height) { return; }
+    
+    // Flattens the 2D index to 1D (position in output array) //
+    uint index = (id.y * width) + id.x;
+    
+    // Calculates the position of the current kernel //
+    float2 pos = float2(id.x % width, id.x / width);
+    pos /= scale;
+    
+    // One iteration for every octave //
+    float res = 0f;
+    float amp = 1f;
+    float frq = 1f;
+    
+    for (int i = 0; i < octaves; i++)
+    {
+        float perlin = SamplePerlin(pos * frq);
+        res += perlin * amp;
+        
+        amp *= persistence;
+        frq *= lacunarity;
+    }
+    
+    // Stores the output in the buffer //
+    res /= octaves;
+    ResultBuffer[index] = res;
+}
