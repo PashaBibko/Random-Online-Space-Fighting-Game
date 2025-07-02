@@ -10,7 +10,7 @@ public partial class TerrainGenerator : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] Material m_ChunkRenderMaterial;
-    [SerializeField] HeightMapFunction m_HeightMapFunction;
+    [SerializeField] ComputeShader m_HeightmapComputeShader;
 
     [Header("Controls")]
     [SerializeField] bool m_RandomiseWorldSeed;
@@ -75,19 +75,32 @@ public partial class TerrainGenerator : MonoBehaviour
         width = (int)(m_ChunkCount.x * m_ChunkSampleCount + 1);
         height = (int)(m_ChunkCount.y * m_ChunkSampleCount + 1);
 
-        // Generates the contents of the heightmap //
-        for (int x = 0; x < width; x++)
-        {
-            for (int z = 0; z < height; z++)
-            {
-                // Determines the world position of where the heightmap point is //
-                Vector2 pos = new Vector2((float)x / m_ChunkSampleCount, (float)z / m_ChunkSampleCount) * m_ChunkSize;
-                Vector2 samplePos = pos / m_WorldScale;
+        // Prepares the kernel //
+        ComputeBuffer buffer = new(m_Heightmap.Length, sizeof(float));
+        int kernel = m_HeightmapComputeShader.FindKernel("CSMain");
 
-                // Samples perlin noise at the location and applies it to the heightmap //
-                m_Heightmap[(z * width) + x] = m_HeightMapFunction.SampleHeight(samplePos, (int)m_WorldSeed);
-            }
-        }
+        m_HeightmapComputeShader.SetInt("width", width);
+        m_HeightmapComputeShader.SetInt("height", height);
+
+        m_HeightmapComputeShader.SetInt("seed", (int)m_WorldSeed);
+        m_HeightmapComputeShader.SetInt("octaves", 8);
+
+        m_HeightmapComputeShader.SetFloat("persistence", 0.4f);
+        m_HeightmapComputeShader.SetFloat("lacunarity", 2f);
+        m_HeightmapComputeShader.SetFloat("scale", 1f / m_WorldScale);
+
+        m_HeightmapComputeShader.SetBuffer(kernel, "ResultBuffer", buffer);
+
+        // Launches the kernel //
+        int tx = Mathf.CeilToInt(width / 8f);
+        int ty = Mathf.CeilToInt(height / 8f);
+        m_HeightmapComputeShader.Dispatch(kernel, tx, ty, 1);
+
+        // Transfers the data //
+        buffer.GetData(m_Heightmap);
+
+        // Cleanup //
+        buffer.Release();
 
         // Runs the erosion (if it is referenced) //
         if (runErosionSimulation)

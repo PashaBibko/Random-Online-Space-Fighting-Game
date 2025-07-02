@@ -32,7 +32,7 @@ public partial class TerrainGenerator : MonoBehaviour
                 float sample = m_Heightmap[((int)samplePos.y * width) + (int)samplePos.x];
 
                 // Assigns it to the vertex position //
-                vertecies[vIndex] = new Vector3(pos.x, sample, pos.y);
+                vertecies[vIndex] = new Vector3(pos.x, sample * 350f, pos.y);
                 vIndex++;
             }
         }

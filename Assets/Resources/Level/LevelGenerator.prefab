@@ -78,7 +78,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ChunkRenderMaterial: {fileID: 2100000, guid: 8effc0ca222ee5d44a8dd18c4205dfdb, type: 2}
-  m_HeightMapFunction: {fileID: 11400000, guid: b6dadfb0f00d1cf40a6867dc4ee232e7, type: 2}
+  m_HeightmapComputeShader: {fileID: 7200000, guid: 7e674af5be4ab834ea380fbe363092e8, type: 3}
   m_RandomiseWorldSeed: 0
   runErosionSimulation: 0
   m_EnableSmoothing: 0

@@ -1,19 +1,16 @@
 #pragma kernel CSMain
 
-// Constants set by the C# script calling the computer shader //
-cbuffer SettingsBuffer : register(b0)
-{
-    // Noise settings //
-    int octaves;
-    float persistence;
-    float lacunarity;
-    float scale;
-    int seed;
-    
-    // Grid settings //
-    int height;
-    int width;
-};
+// Noise settings //
+int octaves;
+float persistence;
+float lacunarity;
+float scale;
+int seed;
+
+// Grid settings //
+int height;
+int width;
+
 
 // Output of the compute shader //
 RWStructuredBuffer<float> ResultBuffer;
@@ -53,7 +50,7 @@ float SamplePerlin(float2 pos)
     int x1 = x0 + 1;
     
     int y0 = (int) pos.y;
-    int y1 = y1 + 1;
+    int y1 = y0 + 1;
     
     // Interpolation weights //
     float weightX = pos.x - x0;
@@ -74,19 +71,22 @@ float SamplePerlin(float2 pos)
 [numthreads(8,8,1)] void CSMain (uint3 id : SV_DispatchThreadID)
 {
     // Early returns on elements outside of the grid //
-    if (id.x >= width || id.y >= height) { return; }
+    if (id.x >= (uint) width || id.y >= (uint) height)
+    {
+        return;
+    }
     
     // Flattens the 2D index to 1D (position in output array) //
     uint index = (id.y * width) + id.x;
     
     // Calculates the position of the current kernel //
-    float2 pos = float2(id.x % width, id.x / width);
-    pos /= scale;
+    float2 pos = float2(id.x / (float) width, id.y / (float) height);
+    pos *= 8.0f; // tweak this to get noise scale
     
     // One iteration for every octave //
-    float res = 0f;
-    float amp = 1f;
-    float frq = 1f;
+    float res = 0.0f;
+    float amp = 1.0f;
+    float frq = 1.0f;
     
     for (int i = 0; i < octaves; i++)
     {
