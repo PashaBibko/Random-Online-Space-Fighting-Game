@@ -67,6 +67,9 @@ public partial class TerrainGenerator : MonoBehaviour
             triangles = triangles
         };
 
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
         return mesh;
     }
 }

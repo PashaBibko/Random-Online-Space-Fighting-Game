@@ -3,6 +3,7 @@ Shader "Custom/VertexColor"
     SubShader
     {
         Tags { "RenderType"="Opaque" }
+
         Pass
         {
             CGPROGRAM
@@ -10,8 +11,17 @@ Shader "Custom/VertexColor"
             #pragma vertex vert
             #pragma fragment frag
 
-            struct appdata { float4 vertex : POSITION; float4 color : COLOR; };
-            struct v2f { float4 pos : SV_POSITION; float4 color : COLOR; };
+            struct appdata
+            {
+                float4 vertex   : POSITION;
+                float4 color    : COLOR;
+            };
+
+            struct v2f
+            {
+                float4 pos      : SV_POSITION;
+                float4 color    : COLOR;
+            };
 
             v2f vert (appdata v)
             {
@@ -25,6 +35,7 @@ Shader "Custom/VertexColor"
             {
                 return i.color;
             }
+
             ENDCG
         }
     }

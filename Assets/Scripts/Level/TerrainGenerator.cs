@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class HeightMapFunction : ScriptableObject
@@ -46,6 +47,21 @@ public partial class TerrainGenerator : MonoBehaviour
     System.Random prng;
 
     private void Start()
+    {
+        #if UNITY_EDITOR
+            // Gathers all previously generated children //
+            List<GameObject> children = new();
+            foreach (Transform child in transform) { children.Add(child.gameObject); }
+
+            // If there are no children it needs to generate a world //
+            if (children.Count == 0) { Generate(); }
+        #else
+            // Does not need to do any checks in release builds //
+            Generate();
+        #endif
+    }
+
+    public void Generate()
     {
         // Randomises the world seed //
         if (m_RandomiseWorldSeed) { m_WorldSeed = (uint)Random.Range(1, 10000); }

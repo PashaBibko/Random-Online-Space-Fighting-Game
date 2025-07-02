@@ -77,7 +77,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9335ef119bcbc58448e9498a7b29d515, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ChunkRenderMaterial: {fileID: 2100000, guid: 732134a642cae4f42ba0522723558e69, type: 2}
+  m_ChunkRenderMaterial: {fileID: 2100000, guid: 8effc0ca222ee5d44a8dd18c4205dfdb, type: 2}
   m_HeightMapFunction: {fileID: 11400000, guid: b6dadfb0f00d1cf40a6867dc4ee232e7, type: 2}
   m_ChunkSampleCount: 100
   m_ChunkSize: 100
