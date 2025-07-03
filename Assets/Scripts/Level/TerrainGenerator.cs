@@ -76,9 +76,25 @@ public partial class TerrainGenerator : MonoBehaviour
         width = (int)(m_ChunkCount.x * m_ChunkSampleCount + 1);
         height = (int)(m_ChunkCount.y * m_ChunkSampleCount + 1);
 
+        // Sets shader constants //
+        m_HeightmapComputeShader.SetShaderConstant("width", width);
+        m_HeightmapComputeShader.SetShaderConstant("height", height);
+
+        m_HeightmapComputeShader.SetShaderConstant("seed", m_WorldSeed);
+        m_HeightmapComputeShader.SetShaderConstant("scale", 1f / m_WorldScale);
+
         // Runs the compute shader to generate the heightmap //
-        Vector2Int kernelSize = Vector2Int.one;
-        m_HeightmapComputeShader.LaunchShader("CS_Main_8", kernelSize, ref m_Heightmap, sizeof(float));
+        Vector2Int kernelSize = new
+        (
+            Mathf.CeilToInt(width / 8f),
+            Mathf.CeilToInt(height / 8f)
+        );
+        ComputeBuffer buffer = new(m_Heightmap.Length, sizeof(float));
+        m_HeightmapComputeShader.LaunchShader("CSMain", kernelSize, buffer);
+
+        // Copies the data from the buffer to the heightmap and then frees the buffer //
+        buffer.GetData(m_Heightmap);
+        buffer.Release();
 
         // Runs the erosion (if it is referenced) //
         if (runErosionSimulation)

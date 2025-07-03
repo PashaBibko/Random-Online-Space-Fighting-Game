@@ -1,6 +1,4 @@
-#pragma kernel CSMain_8
-#pragma kernel CSMain_16
-#pragma kernel CSMain_32
+#pragma kernel CSMain
 
 // Noise settings //
 int octaves;
@@ -69,8 +67,7 @@ float SamplePerlin(float2 pos)
     return clamp(lerp(l0, l1, weightY) + 0.5f, 0, 1);
 }
 
-// Thread size generic main function //
-void CSMain (uint3 id)
+[numthreads(8, 8, 1)] void CSMain(uint3 id : SV_DispatchThreadID)
 {
     // Early returns on elements outside of the grid //
     if (id.x >= (uint) width || id.y >= (uint) height)
@@ -104,7 +101,3 @@ void CSMain (uint3 id)
     ResultBuffer[index] = res;
 }
 
-// Fowards the different batch sizes to the general CSMain function //
-[numthreads( 8,  8, 1)] void CSMain_8  (uint3 id : SV_DispatchThreadID) { CSMain(id); }
-[numthreads(16, 16, 1)] void CSMain_16 (uint3 id : SV_DispatchThreadID) { CSMain(id); }
-[numthreads(32, 32, 1)] void CSMain_32 (uint3 id : SV_DispatchThreadID) { CSMain(id); }

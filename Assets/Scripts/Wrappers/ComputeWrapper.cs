@@ -4,7 +4,7 @@ using System;
 
 [CreateAssetMenu(menuName = "Custom/ComputeWrapper")] public class ComputeWrapper : ScriptableObject
 {
-    [Serializable] public struct ShaderConstant
+    [Serializable] public class ShaderConstant
     {
         enum ConstantType
         {
@@ -12,11 +12,11 @@ using System;
             Float
         }
 
-        [SerializeField] string m_Name;
-        [SerializeField] string m_Value;
+        [SerializeField] public string m_Name;
+        [SerializeField] public string m_Value;
         [SerializeField] ConstantType m_Type;
 
-        public readonly void ApplyConstantTo(ComputeShader shader)
+        public void ApplyConstantTo(ComputeShader shader)
         {
             // Catches errors thrown when setting shader constants //
             try
@@ -38,7 +38,7 @@ using System;
             // Prints the error message to the console //
             catch (Exception e)
             {
-                Debug.LogError($"Failed to apply shader constant [{m_Name}] to compute shader. Error message: [{e.Message}]");
+                Debug.LogError($"Failed to apply shader constant [{m_Name}] to compute shader with value [{m_Value}]. Error message: [{e.Message}]");
             }
         }
     }
@@ -47,7 +47,28 @@ using System;
     [SerializeField] ComputeShader m_ComputeShader;
     [SerializeField] ShaderConstant[] m_ShaderConstants;
 
-    public void LaunchShader(string kernelName, Vector2Int groups, ref Array output, int typeSize)
+    public void SetShaderConstant<T>(string name, T value)
+    {
+        // Checks the value was not null before turning it into a string //
+        if (value == null) { Debug.LogError("Value passed was null"); }
+        SetShaderConstant(name, value.ToString());
+    }
+
+    public void SetShaderConstant(string name, string value)
+    {
+        foreach (ShaderConstant constant in m_ShaderConstants)
+        {
+            if (constant.m_Name == name)
+            {
+                constant.m_Value = value;
+                return;
+            }
+        }
+
+        Debug.LogError($"Shader constant [{name}] does not exist");
+    }
+
+    public void LaunchShader(string kernelName, Vector2Int batches, ComputeBuffer buffer)
     {
         // Finds the kernel index by name //
         int kernelIndex = m_ComputeShader.FindKernel(kernelName);
@@ -60,14 +81,9 @@ using System;
         }
 
         // Prepares the output buffer of the compute shader //
-        ComputeBuffer buffer = new(output.Length, typeSize);
         m_ComputeShader.SetBuffer(kernelIndex, "ResultBuffer", buffer);
 
         // Launches the compute shader //
-        m_ComputeShader.Dispatch(kernelIndex, groups.x, groups.y, 1);
-
-        // Transfers the output data from the compute shader //
-        buffer.GetData(output);
-        buffer.Release();
+        m_ComputeShader.Dispatch(kernelIndex, batches.x, batches.y, 1);
     }
 }
