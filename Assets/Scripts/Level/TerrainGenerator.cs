@@ -1,13 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
-
-public abstract class HeightMapFunction : ScriptableObject
-{
-    public abstract float SampleHeight(Vector2 location, int seed);
-}
 
 public partial class TerrainGenerator : MonoBehaviour
 {
