@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class HeightMapFunction : ScriptableObject
@@ -10,7 +11,7 @@ public partial class TerrainGenerator : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] Material m_ChunkRenderMaterial;
-    [SerializeField] ComputeShader m_HeightmapComputeShader;
+    [SerializeField] ComputeWrapper m_HeightmapComputeShader;
 
     [Header("Controls")]
     [SerializeField] bool m_RandomiseWorldSeed;
@@ -75,32 +76,9 @@ public partial class TerrainGenerator : MonoBehaviour
         width = (int)(m_ChunkCount.x * m_ChunkSampleCount + 1);
         height = (int)(m_ChunkCount.y * m_ChunkSampleCount + 1);
 
-        // Prepares the kernel //
-        ComputeBuffer buffer = new(m_Heightmap.Length, sizeof(float));
-        int kernel = m_HeightmapComputeShader.FindKernel("CSMain");
-
-        m_HeightmapComputeShader.SetInt("width", width);
-        m_HeightmapComputeShader.SetInt("height", height);
-
-        m_HeightmapComputeShader.SetInt("seed", (int)m_WorldSeed);
-        m_HeightmapComputeShader.SetInt("octaves", 8);
-
-        m_HeightmapComputeShader.SetFloat("persistence", 0.4f);
-        m_HeightmapComputeShader.SetFloat("lacunarity", 2f);
-        m_HeightmapComputeShader.SetFloat("scale", 1f / m_WorldScale);
-
-        m_HeightmapComputeShader.SetBuffer(kernel, "ResultBuffer", buffer);
-
-        // Launches the kernel //
-        int tx = Mathf.CeilToInt(width / 8f);
-        int ty = Mathf.CeilToInt(height / 8f);
-        m_HeightmapComputeShader.Dispatch(kernel, tx, ty, 1);
-
-        // Transfers the data //
-        buffer.GetData(m_Heightmap);
-
-        // Cleanup //
-        buffer.Release();
+        // Runs the compute shader to generate the heightmap //
+        Vector2Int kernelSize = Vector2Int.one;
+        m_HeightmapComputeShader.LaunchShader("CS_Main_8", kernelSize, ref m_Heightmap, sizeof(float));
 
         // Runs the erosion (if it is referenced) //
         if (runErosionSimulation)
