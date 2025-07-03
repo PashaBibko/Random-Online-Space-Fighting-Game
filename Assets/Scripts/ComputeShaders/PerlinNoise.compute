@@ -79,7 +79,7 @@ float SamplePerlin(float2 pos)
     uint index = (id.y * width) + id.x;
     
     // Calculates the position of the current kernel //
-    float2 pos = float2(id.x / (float) width, id.y / (float) height);
+    float2 pos = float2(id.x / (float) scale, id.y / (float) scale);
     pos *= 8.0f; // tweak this to get noise scale
     
     // One iteration for every octave //

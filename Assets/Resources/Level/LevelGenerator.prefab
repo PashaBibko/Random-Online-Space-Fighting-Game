@@ -86,7 +86,7 @@ MonoBehaviour:
   m_ChunkSize: 100
   m_ChunkCount: {x: 5, y: 5}
   m_WorldSeed: 23117
-  m_WorldScale: 200
+  m_WorldScale: 784
   erosionRadius: 3
   inertia: 0
   sedimentCapacityFactor: 2

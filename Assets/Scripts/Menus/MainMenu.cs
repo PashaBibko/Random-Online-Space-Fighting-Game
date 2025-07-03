@@ -19,6 +19,8 @@ public class MainMenu : MonoBehaviour
 
     private bool mConnectedToServer = false;
 
+    public static bool m_DiagonsticMode = true;
+
     // ===== General functions ===== //
 
     private void Start()

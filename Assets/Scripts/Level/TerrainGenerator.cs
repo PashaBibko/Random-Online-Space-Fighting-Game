@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public abstract class HeightMapFunction : ScriptableObject
 {
@@ -66,6 +68,22 @@ public partial class TerrainGenerator : MonoBehaviour
         #endif
     }
 
+    private void DumpHeightmapInfo()
+    {
+        var sb = new System.Text.StringBuilder(m_Heightmap.Length * 10); // optional capacity hint
+
+        foreach (float item in m_Heightmap)
+        {
+            sb.AppendLine(item.ToString());
+        }
+
+        string filename = "HM.txt";
+        string path = Path.Combine(Application.persistentDataPath, filename);
+
+        File.WriteAllText(path, sb.ToString());
+        Debug.Log("Saved file to: " + Path.GetFullPath(path));
+    }
+
     public void Generate()
     {
         // Randomises the world seed //
@@ -81,7 +99,7 @@ public partial class TerrainGenerator : MonoBehaviour
         m_HeightmapComputeShader.SetShaderConstant("height", height);
 
         m_HeightmapComputeShader.SetShaderConstant("seed", m_WorldSeed);
-        m_HeightmapComputeShader.SetShaderConstant("scale", 1f / m_WorldScale);
+        m_HeightmapComputeShader.SetShaderConstant("scale", m_WorldScale);
 
         // Runs the compute shader to generate the heightmap //
         Vector2Int kernelSize = new
@@ -125,6 +143,12 @@ public partial class TerrainGenerator : MonoBehaviour
             }
 
             m_Heightmap = temp;
+        }
+
+        // Dumps heightmap info if in diagnostic mode //
+        if (MainMenu.m_DiagonsticMode)
+        {
+            DumpHeightmapInfo();
         }
 
         // Generates the worlds chunks //
