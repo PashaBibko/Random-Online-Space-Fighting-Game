@@ -80,11 +80,11 @@ MonoBehaviour:
   m_ChunkRenderMaterial: {fileID: 2100000, guid: 8effc0ca222ee5d44a8dd18c4205dfdb, type: 2}
   m_HeightmapComputeShader: {fileID: 11400000, guid: af049d9070c8c464abb98bbb53ec87ee, type: 2}
   m_RandomiseWorldSeed: 0
-  runErosionSimulation: 0
+  runErosionSimulation: 1
   m_EnableSmoothing: 0
   m_ChunkSampleCount: 250
   m_ChunkSize: 100
-  m_ChunkCount: {x: 5, y: 5}
+  m_ChunkCount: {x: 1, y: 1}
   m_WorldSeed: 23117
   m_WorldScale: 784
   erosionRadius: 3

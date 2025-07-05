@@ -1,0 +1,178 @@
+#pragma kernel CSMain
+
+// Erosion settings //
+float InitialSpeed;
+float InitialWater;
+int MaxLifetime;
+float Inertia;
+float SedimentCapacityMultiplier;
+float MinimumSediment;
+float DepositSpeed;
+float EvaporateSpeed;
+float ErosionSpeed;
+int RandomSeed;
+
+// The size of the grid/heightmap //
+int Height;
+int Width;
+
+// The heightmap before the erosion simulation //
+StructuredBuffer<float> Heightmap;
+
+// Changes that need to be applied to the heightmap //
+RWStructuredBuffer<int> HeightmapChanges;
+
+// Struct to hold the height and gradients of a given location //
+struct HeightAndGradient
+{
+    float height;
+    
+    float gradientX;
+    float gradientY;
+};
+
+// Calculates the height and gradient of a given location //
+HeightAndGradient CalculateHeightAndGradient(float2 pos)
+{
+    // North west corner of the current cell //
+    int coordX = (int) pos.x;
+    int coordY = (int) pos.y;
+    
+    // Offset of the droplet inside the cell (0, 0) = at NW node, (1, 1) = at SE node //
+    float offsetX = pos.x - coordX;
+    float offsetY = pos.y - coordY;
+    
+    // Calculates the 4 heights of the corner of the current cell //
+    int nodeIndexNW = (coordY * Width) + coordX;
+    float heightNW = Heightmap[nodeIndexNW];
+    float heightNE = Heightmap[nodeIndexNW + 1];
+    float heightSW = Heightmap[nodeIndexNW + Width];
+    float heightSE = Heightmap[nodeIndexNW + Width + 1];
+    
+    // Assigns the output and returns it //
+    HeightAndGradient output;
+    output.gradientX = (heightNE - heightNW) * (1 - offsetY) + (heightSE - heightSW) * offsetY;
+    output.gradientY = (heightSW - heightNW) * (1 - offsetX) + (heightSE - heightNE) * offsetX;
+    
+    output.height =
+        heightNW * (1 - offsetX) * (1 - offsetY) +
+        heightNE * offsetX       * (1 - offsetY) +
+        heightSW * (1 - offsetX) * offsetY       +
+        heightSE * offsetX       * offsetY;
+    
+    return output;
+}
+
+// Precomputed heightmap weights //
+static const float HeightmapWeights[25] =
+{
+    0.00297, 0.01331, 0.02194, 0.01331,	0.00297,
+	0.01331, 0.05955, 0.09832, 0.05955,	0.01331,
+	0.02194, 0.09832, 0.16210, 0.09832,	0.02194,
+	0.01331, 0.05955, 0.09832, 0.05955,	0.01331,
+	0.00297, 0.01331, 0.02194, 0.01331,	0.00297
+};
+
+// Simulates a single water drop on the heightmap //
+[numthreads(256, 1, 1)] void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // Starting information of the water drop //
+    float posX = 3f; // Needs to be randomly generated
+    float posY = 3f; // Needs to be randomly generated
+    float dirX = 0f;
+    float dirY = 0f;
+    float speed = InitialSpeed;
+    float water = InitialWater;
+    float sediment = 0f;
+    
+    // Loops for the maximum duration of the droplet //
+    for (int lifetime = 0; lifetime < MaxLifetime; lifetime++)
+    {
+        // Corner of the current node //
+        int nodeX = (int) posX;
+        int nodeY = (int) posY;
+        int nodeIndex = (nodeY * Width) = nodeX;
+        
+        // Droplet index inside the cell (0, 0) = at NW node, (1, 1) = at SE node //
+        float cellOffsetX = posX - nodeX;
+        float cellOffsetY = posY - nodeY;
+        
+        // Calculates the current height and gradient of the node //
+        HeightAndGradient heightAndGradient = CalculateHeightAndGradient(float2(posX, posY));
+        
+        // Updates the droplet direction (moves 1 unit regardless of speed) //
+        dirX = dirX * Inertia - heightAndGradient.gradientX * (1f - Inertia);
+        dirY = dirY * Inertia - heightAndGradient.gradientY * (1f - Inertia);
+        
+        // Normalises the direction of the water droplet //
+        float dirLength = sqrt(dirX * dirX + dirY * dirY);
+        if (dirLength != 0f)
+        {
+            dirX /= dirLength;
+            dirY /= dirLength;
+        }
+        
+        // Adds the droplet direction to it's position //
+        posX += dirX;
+        posY += dirY;
+        
+        // Stops simulating the droplet if it's not moving or has flowed over the edge //
+        if ((dirX == 0 && dirY == 0) || (posX < 0) || (posX >= Width - 1) || (posY < 0) || (posY >= Height - 1))
+        {
+            return;
+        }
+        
+        // Finds the new droplet height and calculates the difference (delta) //
+        float newHeight = CalculateHeightAndGradient(float2(posX, posY)).height;
+        float delta = newHeight - heightAndGradient.height;
+        
+        // Calculate the current sediment capacity //
+        float capacity = max(-delta * speed * water * SedimentCapacityMultiplier, MinimumSediment);
+        
+        // If it is carrying more sediment than capacity or flowing downhill it deposits //
+        if (sediment > capacity || delta > 0)
+        {
+            // If it is moving uphill tries to fill upto current height otherwise deposits a fraction of the excess //
+            float ammount = (delta > 0) ? min(delta, sediment) : (sediment - capacity) * DepositSpeed;
+            sediment -= ammount;
+            
+            // Multiplies the ammount by 1000 as there are not atmoic float operations //
+            ammount *= ammount;
+            
+            // Adds the sediment to the four surrounding nodes //
+            InterlockedAdd(HeightmapChanges[nodeIndex],              ammount * (1 - cellOffsetX) * (1 - cellOffsetY));
+            InterlockedAdd(HeightmapChanges[nodeIndex + 1],          ammount * cellOffsetX       * (1 - cellOffsetY));
+            InterlockedAdd(HeightmapChanges[nodeIndex + Width],      ammount * (1 - cellOffsetX) * cellOffsetY      );
+            InterlockedAdd(HeightmapChanges[nodeIndex + Width + 1],  ammount * cellOffsetX       * cellOffsetY      );
+        }
+        
+        // Else it deposits //
+        else
+        {
+            // Calculates the ammount to erode from the surrounding nodes //
+            float erosion = min((capacity - sediment) * ErosionSpeed, -delta);
+            
+            // Uses the precomputed values to erode the values around the node //
+            for (int x = -2; x <= 2; x++)
+            {
+                for (int y = -2; y < 2; y++)
+                {
+                    int erosionNodeX = nodeX + x;
+                    int erosionNodeY = nodeY + y;
+                    
+                    // Does not apply changes to nodes outside the map //
+                    if (erosionNodeX >= 0 && erosionNodeX < Width && erosionNodeY >= 0 && erosionNodeY < Height)
+                    {
+                        float weight = HeightmapWeights[((y + 2) * 5) + x + 2];
+                        InterlockedAdd(HeightmapChanges[(erosionNodeY * Width) + erosionNodeX], -(int)(weight * 1000));
+                        sediment += weight;
+                    }
+                }
+            }
+        }
+        
+        // Updates the droplet speed and water content //
+        speed = sqrt(speed * speed + delta);
+        water *= (1 - EvaporateSpeed);
+    }
+}
