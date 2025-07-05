@@ -11,6 +11,7 @@ float DepositSpeed;
 float EvaporateSpeed;
 float ErosionSpeed;
 int RandomSeed;
+int ErosionIteration;
 
 // The size of the grid/heightmap //
 int Height;
@@ -73,12 +74,23 @@ static const float HeightmapWeights[25] =
 	0.00297, 0.01331, 0.02194, 0.01331,	0.00297
 };
 
+float Hash(float2 a)
+{
+    return frac(sin(dot(a, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float RandomFloat(int seed, int val, int max)
+{
+    float2 f2 = float2(seed / 133f, val / 17f);
+    return Hash(f2) * max;
+}
+
 // Simulates a single water drop on the heightmap //
 [numthreads(256, 1, 1)] void CSMain (uint3 id : SV_DispatchThreadID)
 {
     // Starting information of the water drop //
-    float posX = 3f; // Needs to be randomly generated
-    float posY = 3f; // Needs to be randomly generated
+    float posX = RandomFloat(RandomSeed, ErosionIteration + id.x, Width);
+    float posY = RandomFloat(RandomSeed, ErosionIteration + id.y, Height);
     float dirX = 0f;
     float dirY = 0f;
     float speed = InitialSpeed;
