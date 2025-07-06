@@ -32,14 +32,9 @@ public partial class TerrainGenerator : MonoBehaviour
                 float sample = m_Weightmap[((int)samplePos.y * width) + (int)samplePos.x];
                 sample = Mathf.Clamp01(sample / 200f);
 
-                if (sample < 0.5)
+                if (sample < 2.0)
                 {
-                    sample = 0;
-                }
-
-                else if (sample < 1.0)
-                {
-                    sample = (sample - 0.5f) * 2f;
+                    sample /= 3f;
                 }
 
                 else
@@ -47,15 +42,13 @@ public partial class TerrainGenerator : MonoBehaviour
                     sample = 1;
                 }
 
-                if (x == 0 && z == 0)
-                {
-                    Debug.Log($"Sample: {sample}");
-                }
+                sample = Mathf.Max(0.2f, sample);
 
-                sample *= 1000;
+                sample *= 2000;
+                sample *= m_Heightmap[((int)samplePos.y * width) + (int)samplePos.x];
 
                 // Assigns it to the vertex position //
-                vertecies[vIndex] = new Vector3(pos.x, sample / 100, pos.y);
+                vertecies[vIndex] = new Vector3(pos.x, sample, pos.y);
                 vIndex++;
             }
         }
