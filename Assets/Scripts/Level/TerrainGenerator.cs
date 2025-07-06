@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
+using System.Linq.Expressions;
 using UnityEngine;
 
 public abstract class HeightMapFunction : ScriptableObject
@@ -13,6 +12,7 @@ public partial class TerrainGenerator : MonoBehaviour
     [Header("References")]
     [SerializeField] Material m_ChunkRenderMaterial;
     [SerializeField] ComputeShader m_HeightmapComputeShader;
+    [SerializeField] ComputeShader m_ValleyWeightComputeShader;
 
     [Header("Controls")]
     [SerializeField] bool m_RandomiseWorldSeed;
@@ -25,7 +25,10 @@ public partial class TerrainGenerator : MonoBehaviour
     [SerializeField] uint m_WorldSeed;
     [SerializeField] uint m_WorldScale;
 
+    ValleyNode m_Valley;
+
     float[] m_Heightmap;
+    float[] m_Weightmap;
 
     int width = -1;
     int height = -1;
@@ -50,20 +53,56 @@ public partial class TerrainGenerator : MonoBehaviour
         // Randomises the world seed //
         if (m_RandomiseWorldSeed) { m_WorldSeed = (uint)Random.Range(1, 10000); }
 
+        // Generates the valley of the world section //
         if (m_GenerateValley)
         {
             // Generates the valley of the world //
-            ValleyNode valley = new ValleyNode(m_WorldSeed);
-            valley.Shift(out Vector2 size);
+            m_Valley = new ValleyNode(m_WorldSeed);
+            m_Valley.Shift(out Vector2 size);
 
             m_ChunkCount.x = (int)size.x;
             m_ChunkCount.y = (int)size.y;
         }
 
-        // Allocates the memory for the heightmap //
-        m_Heightmap = new float[(m_ChunkCount.x * m_ChunkSampleCount + 1) * (m_ChunkCount.y * m_ChunkSampleCount + 1)];
+        // Allocates the memory for the heightmap and weightmap //
         width = (int)(m_ChunkCount.x * m_ChunkSampleCount + 1);
         height = (int)(m_ChunkCount.y * m_ChunkSampleCount + 1);
+        m_Heightmap = new float[width * height];
+        m_Weightmap = new float[width * height];
+
+        // Fills the weightmap (if valley generation enabled) //
+        if (m_GenerateValley)
+        {
+            int kernelIndex0 = m_ValleyWeightComputeShader.FindKernel("CSMain");
+
+            // Gets an array of all of the connections and passes it to the shader //
+            Vector2[] valleyConnections = m_Valley.SerializeConnections(m_ChunkSampleCount);
+
+            ComputeBuffer connectionBuffer = new(valleyConnections.Length, sizeof(float) * 2);
+            connectionBuffer.SetData(valleyConnections);
+
+            m_ValleyWeightComputeShader.SetBuffer(kernelIndex0, "ValleyConnections", connectionBuffer);
+            m_ValleyWeightComputeShader.SetInt("ValleyConnectionsCount", (int)(valleyConnections.Length / 2f));
+
+            // Sets the size of the grid in the shader //
+            m_ValleyWeightComputeShader.SetInt("width", width);
+            m_ValleyWeightComputeShader.SetInt("height", height);
+
+            // Sets the output buffer and then dispatches the shader //
+            ComputeBuffer resultBuffer = new(m_Weightmap.Length, sizeof(float));
+            m_ValleyWeightComputeShader.SetBuffer(kernelIndex0, "ResultBuffer", resultBuffer);
+
+            Vector2Int kernelSize0 = new
+            (
+                Mathf.CeilToInt(width / 8f),
+                Mathf.CeilToInt(height / 8f)
+            );
+            m_ValleyWeightComputeShader.Dispatch(kernelIndex0, kernelSize0.x, kernelSize0.y, 1);
+
+            // Copies the data and frees the buffer //
+            resultBuffer.GetData(m_Weightmap);
+            resultBuffer.Release();
+        }
 
         // Sets shader constants //
         m_HeightmapComputeShader.SetInt("width", width);
@@ -77,15 +116,15 @@ public partial class TerrainGenerator : MonoBehaviour
         m_HeightmapComputeShader.SetFloat("lacunarity", 2.0f);
 
         // Runs the compute shader to generate the heightmap //
-        Vector2Int kernelSize = new
+        Vector2Int kernelSize1 = new
         (
             Mathf.CeilToInt(width / 8f),
             Mathf.CeilToInt(height / 8f)
         );
         ComputeBuffer buffer = new(m_Heightmap.Length, sizeof(float));
-        int kernelIndex = m_HeightmapComputeShader.FindKernel("CSMain");
-        m_HeightmapComputeShader.SetBuffer(kernelIndex, "ResultBuffer", buffer);
-        m_HeightmapComputeShader.Dispatch(kernelIndex, kernelSize.x, kernelSize.y, 1);
+        int kernelIndex1 = m_HeightmapComputeShader.FindKernel("CSMain");
+        m_HeightmapComputeShader.SetBuffer(kernelIndex1, "ResultBuffer", buffer);
+        m_HeightmapComputeShader.Dispatch(kernelIndex1, kernelSize1.x, kernelSize1.y, 1);
 
         // Copies the data from the buffer to the heightmap and then frees the buffer //
         buffer.GetData(m_Heightmap);

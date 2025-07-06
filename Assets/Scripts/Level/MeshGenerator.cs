@@ -29,10 +29,33 @@ public partial class TerrainGenerator : MonoBehaviour
 
                 // Samples the heightmap at the given location //
                 Vector2 samplePos = (location * m_ChunkSampleCount) + new Vector2(x, z);
-                float sample = m_Heightmap[((int)samplePos.y * width) + (int)samplePos.x];
+                float sample = m_Weightmap[((int)samplePos.y * width) + (int)samplePos.x];
+                sample = Mathf.Clamp01(sample / 200f);
+
+                if (sample < 0.5)
+                {
+                    sample = 0;
+                }
+
+                else if (sample < 1.0)
+                {
+                    sample = (sample - 0.5f) * 2f;
+                }
+
+                else
+                {
+                    sample = 1;
+                }
+
+                if (x == 0 && z == 0)
+                {
+                    Debug.Log($"Sample: {sample}");
+                }
+
+                sample *= 1000;
 
                 // Assigns it to the vertex position //
-                vertecies[vIndex] = new Vector3(pos.x, sample * 350f, pos.y);
+                vertecies[vIndex] = new Vector3(pos.x, sample / 100, pos.y);
                 vIndex++;
             }
         }

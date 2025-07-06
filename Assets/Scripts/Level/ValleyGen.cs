@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ValleyNode
@@ -82,12 +83,12 @@ public class ValleyNode
         CalculateBoundingBox_R(ref min, ref max);
 
         // Adds padding around the x-axis to the next value //
-        min.x = (int)min.x - 1;
-        max.x = (int)max.x + 1;
+        min.x = (int)min.x - 2;
+        max.x = (int)max.x + 2;
 
         // Adds padding around the y-axis to the next value //
-        min.y = (int)min.y - 1;
-        max.y = (int)max.y + 1;
+        min.y = (int)min.y - 2;
+        max.y = (int)max.y + 2;
     }
 
     private void Shift_R(Vector2 shift)
@@ -106,10 +107,35 @@ public class ValleyNode
         CalculateBoundingBox(out Vector2 oMin, out Vector2 oMax);
 
         // Shifts all of the nodes so they are in positive coordinates //
-        Shift_R(new Vector2(Mathf.Abs(oMin.x) + 1, Mathf.Abs(oMin.y) + 1));
+        Shift_R(new Vector2(Mathf.Abs(oMin.x) + 2, Mathf.Abs(oMin.y) + 2));
 
         // Returns the new bounding box //
         CalculateBoundingBox(out Vector2 _, out size);
+    }
+
+    private void SerializeConnections_R(ref List<Vector2> connections, float scale)
+    {
+        // Only adds the connection if it is the destination //
+        if (m_Creator != null)
+        {
+            // Adds the creator's position and then its own //
+            connections.Add(m_Creator.m_Position * scale);
+            connections.Add(m_Position * scale);
+        }
+
+        // Calls the function on it's children (if they exist) //
+        m_ChildA?.SerializeConnections_R(ref connections, scale);
+        m_ChildB?.SerializeConnections_R(ref connections, scale);
+    }
+
+    public Vector2[] SerializeConnections(float scale)
+    {
+        // Creates a list of all the serialized connections //
+        List<Vector2> connections = new();
+        SerializeConnections_R(ref connections, scale);
+
+        // Returns the connections as an array //
+        return connections.ToArray();
     }
 
     // The position the node is in //

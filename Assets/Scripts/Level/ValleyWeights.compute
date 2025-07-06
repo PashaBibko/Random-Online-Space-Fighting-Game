@@ -1,0 +1,50 @@
+#pragma kernel CSMain
+
+// Grid settings //
+int height;
+int width;
+
+// The valley node connections //
+StructuredBuffer<float2> ValleyConnections;
+int ValleyConnectionsCount;
+
+// Output of the compute shader //
+RWStructuredBuffer<float> ResultBuffer;
+
+float DistanceFromLine(float2 p, float2 l0, float2 l1)
+{
+    float2 lineDir = l1 - l0;
+    float2 posDir = p - l0;
+    
+    float d0 = dot(lineDir, posDir);
+    float d1 = dot(lineDir, lineDir);
+    float t = clamp(d0 / d1, 0, 1);
+    
+    float2 closest = l0 + (t * lineDir);
+    return distance(p, closest);
+}
+
+[numthreads(8,8,1)] void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // Early returns on elements outside of the grid //
+    if (id.x >= (uint) width || id.y >= (uint) height)
+    {
+        return;
+    }
+    
+    // Flattens the 2D index to 1D (position in output array) //
+    uint index = (id.y * width) + id.x;
+    
+    // Loops over all the 'lines' in the valley to find the shortest distance //
+    float minDist = 1000;
+    for (int i = 0; i < ValleyConnectionsCount; i++)
+    {
+        float2 l0 = ValleyConnections[(i * 2)];
+        float2 l1 = ValleyConnections[(i * 2) + 1];
+        
+        minDist = min(DistanceFromLine(float2(id.x, id.y), l0, l1), minDist);
+    }
+    
+    // Stores the result in the buffer //
+    ResultBuffer[index] = minDist;
+}
