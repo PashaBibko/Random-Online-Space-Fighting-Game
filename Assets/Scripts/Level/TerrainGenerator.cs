@@ -16,6 +16,7 @@ public partial class TerrainGenerator : MonoBehaviour
 
     [Header("Controls")]
     [SerializeField] bool m_RandomiseWorldSeed;
+    [SerializeField] bool m_GenerateValley;
 
     [Header("Generation Settings")]
     [SerializeField] uint m_ChunkSampleCount;
@@ -48,6 +49,16 @@ public partial class TerrainGenerator : MonoBehaviour
     {
         // Randomises the world seed //
         if (m_RandomiseWorldSeed) { m_WorldSeed = (uint)Random.Range(1, 10000); }
+
+        if (m_GenerateValley)
+        {
+            // Generates the valley of the world //
+            ValleyNode valley = new ValleyNode(m_WorldSeed);
+            valley.Shift(out Vector2 size);
+
+            m_ChunkCount.x = (int)size.x;
+            m_ChunkCount.y = (int)size.y;
+        }
 
         // Allocates the memory for the heightmap //
         m_Heightmap = new float[(m_ChunkCount.x * m_ChunkSampleCount + 1) * (m_ChunkCount.y * m_ChunkSampleCount + 1)];

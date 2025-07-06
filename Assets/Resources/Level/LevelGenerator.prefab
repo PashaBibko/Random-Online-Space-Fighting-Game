@@ -78,13 +78,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ChunkRenderMaterial: {fileID: 2100000, guid: 8effc0ca222ee5d44a8dd18c4205dfdb, type: 2}
-  m_HeightmapComputeShader: {fileID: 11400000, guid: af049d9070c8c464abb98bbb53ec87ee, type: 2}
-  m_RandomiseWorldSeed: 0
+  m_HeightmapComputeShader: {fileID: 7200000, guid: 7e674af5be4ab834ea380fbe363092e8, type: 3}
+  m_RandomiseWorldSeed: 1
+  m_GenerateValley: 1
   m_ChunkSampleCount: 250
   m_ChunkSize: 100
-  m_ChunkCount: {x: 5, y: 5}
-  m_WorldSeed: 23117
-  m_WorldScale: 784
+  m_ChunkCount: {x: 8, y: 3}
+  m_WorldSeed: 8347
+  m_WorldScale: 0
 --- !u!1 &5836071572536544287
 GameObject:
   m_ObjectHideFlags: 0
